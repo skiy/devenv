@@ -27,10 +27,10 @@ set_env() {
     if [ -z "`grep 'export\sDENO_INSTALL' ${PROFILE}`" ];then
         echo "export DENO_INSTALL=\"${DENO_PATH}\"" >> $PROFILE
     else
-        sed -i "s@^export DENO_INSTALL.*@export DENO_INSTALL=\"${DENO_PATH}\"@" $PROFILE
+        sed -i "" -e "s@^export DENO_INSTALL.*@export DENO_INSTALL=\"${DENO_PATH}\"@" $PROFILE
     fi
 
-    if [ -z "`grep 'export\sPATH=\"\$DENO_INSTALL/bin:\$PATH\"' ${PROFILE}`" ];then
+    if [ -z "`grep 'export\sPATH=\"\$PATH:\$DENO_INSTALL/bin\"' ${PROFILE}`" ];then
         echo "export PATH=\"\$PATH:\$DENO_INSTALL/bin\"" >> $PROFILE
     fi
 }
@@ -52,7 +52,7 @@ main() {
         CHINA_MIRROR_URL="https://ghproxy.com/"
 
         curl -sL -o "${TMPFILE}" "${CHINA_MIRROR_URL}${BASH_URL}"
-        sed -i "s@deno_uri=\"https://github.com@deno_uri=\"${CHINA_MIRROR_URL}https://github.com@" "${TMPFILE}"
+        sed -i "" -e "s@deno_uri=\"https://github.com@deno_uri=\"${CHINA_MIRROR_URL}https://github.com@" "${TMPFILE}"
         bash ${TMPFILE}
     else
         curl -fsL "${BASH_URL}" | sh

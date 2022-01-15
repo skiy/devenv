@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 # check_in_china
 check_in_china() {
@@ -13,19 +13,10 @@ main() {
 
     check_in_china
 
-    PIP_CONF_PATH=$HOME/.pip/
-
     if [ "${IN_CHINA}" == "1" ]; then
-        if [ ! -d $PIP_CONF_PATH ]; then
-            mkdir $PIP_CONF_PATH
-        fi
-
-        tee "${PIP_CONF_PATH}/pip.conf" <<-'EOF'
-[global]
-timeout = 6000
-index-url = https://pypi.tuna.tsinghua.edu.cn/simple
-trusted-host = pypi.tuna.tsinghua.edu.cn
-EOF
+        # pip install pip -U
+        pip install -i https://pypi.tuna.tsinghua.edu.cn/simple pip -U
+        pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
     fi    
 }
 

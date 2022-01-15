@@ -280,12 +280,14 @@ download_v2ray() {
   DOWNLOAD_LINK="https://github.com/v2fly/v2ray-core/releases/download/$RELEASE_VERSION/v2ray-linux-$MACHINE.zip"
 
   ## GFW
+  GH_PROXY=""
   urlstatus=$(curl -s -m 5 -IL https://google.com | grep 200)
   if [ "$urlstatus" == "" ]; then
-      DOWNLOAD_LINK="https://gh.api.99988866.xyz/${DOWNLOAD_LINK}"
+      GH_PROXY="https://ghproxy.com/"
   fi
+  DOWNLOAD_LINK="${GH_PROXY}${DOWNLOAD_LINK}"
 
-  echo "Downloading V2Ray archive: $DOWNLOAD_LINK"
+  echo "Downloading V2Ray archive: ${DOWNLOAD_LINK}"
   if ! curl -x "${PROXY}" -R -H 'Cache-Control: no-cache' -o "$ZIP_FILE" "$DOWNLOAD_LINK"; then
     echo 'error: Download failed! Please check your network or try again.'
     return 1

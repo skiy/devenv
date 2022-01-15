@@ -2,11 +2,10 @@
 
 # Golang-Install
 # Project Home Page:
-# https://github.com/flydo/golang-install
-# https://gitlab.cn/skiy/golang-install
+# https://github.com/skiy/golang-install
+# https://jihulab.com/skiy/golang-install
 #
-# Author: Skiy Chan <dev@skiy.net>
-# Link: https://skiy.net
+# Author: Jetsung Chan <skiy@jetsung.com>
 
 # load var
 load_vars() {
@@ -26,12 +25,12 @@ load_vars() {
     PROFILE="${HOME}/.bashrc"
 
     # Set GOPATH PATH
-    GO_PATH="\$HOME/.go/path"
+    GO_PATH="~/.go/path"
 
     # Is GWF
     IN_CHINA=0
 
-    PROJECT_URL="https://github.com/flydo/golang-install"
+    PROJECT_URL="https://github.com/skiy/golang-install"
 }
 
 # check in china
@@ -41,7 +40,7 @@ check_in_china() {
         IN_CHINA=1
         RELEASE_URL="https://golang.google.cn/dl/"
         GOPROXY_TEXT="https://goproxy.io,https://goproxy.cn"   
-        PROJECT_URL="https://gitlab.cn/skiy/golang-install"
+        PROJECT_URL="https://jihulab.com/skiy/golang-install"
     fi
 }
 
@@ -55,8 +54,13 @@ custom_version() {
 
 # create GOPATH folder
 create_gopath() {
-    if [ ! -d $GO_PATH ]; then
-        mkdir -p $GO_PATH
+    if [ ! -d "${GO_PATH}" ]; then
+        if [ "${GO_PATH}" = "~/.go/path" ]; then
+            mkdir -p ~/.go/path
+            GO_PATH="\$HOME/.go/path"
+        else
+            mkdir -p "${GO_PATH}"
+        fi
     fi
 }
 
@@ -70,6 +74,7 @@ init_arch() {
         i386) ARCH="386";;
         armv6l) ARCH="armv6l";; 
         armv7l) ARCH="armv6l";; 
+        aarch64) ARCH="arm64";; 
         *) printf "\e[1;31mArchitecture %s is not supported by this installation script\e[0m\n" $ARCH; exit 1;;
     esac
     echo "ARCH = ${ARCH}"
@@ -106,7 +111,6 @@ init_args() {
                 custom_version $arg
             elif test "-d" = $key; then
                 GO_PATH=$arg
-                create_gopath
             fi
 
             key=""
@@ -157,6 +161,7 @@ install_curl_command() {
 }
 
 # Download go file
+## unused
 download_file() {
     url="${1}"
     destination="${2}"
@@ -180,39 +185,57 @@ download_file() {
     fi
 }
 
+# Download file and unpack
+download_unpack() {
+    [ ! -d ~/.go ] && mkdir ~/.go
+
+    printf "Fetching ${1} \n\n"
+
+    pushd "${HOME}/.go" > /dev/null
+        curl -Lk --retry 3 "${1}" | gunzip | tar x 
+    popd  > /dev/null
+}
+
 # set golang environment
 set_environment() {
-    #test ! -e $PROFILE && PROFILE="${HOME}/.bash_profile"
-    #test ! -e $PROFILE && PROFILE="${HOME}/.bashrc"
+    #test ! -e "${PROFILE}" && PROFILE="${HOME}/.bash_profile"
+    #test ! -e "${PROFILE}" && PROFILE="${HOME}/.bashrc"
+
+    # check .zshrc on MacOS
+    if [ -f "${HOME}"/.zshrc ] && [ -z "`grep \~\/\.bashrc ${HOME}/.zshrc`" ];then
+            echo -e "\n. ~/.bashrc" >> "${HOME}/.zshrc"
+	fi
+
+    [ ! -f "~/.bashrc" ] && touch ~/.bashrc
 
     if [ -z "`grep 'export\sGOROOT' ${PROFILE}`" ];then
-        echo -e "\n## GOLANG" >> $PROFILE
-        echo "export GOROOT=\"\$HOME/.go/go\"" >> $PROFILE
+        echo -e "\n## GOLANG" >> "${PROFILE}"
+        echo "export GOROOT=\"\$HOME/.go/go\"" >> "${PROFILE}"
     else
-        sed -i "s@^export GOROOT.*@export GOROOT=\"\$HOME/.go/go\"@" $PROFILE
+        sed -i "" -e "s@^export GOROOT.*@export GOROOT=\"\$HOME/.go/go\"@" "${PROFILE}"
     fi
 
     if [ -z "`grep 'export\sGOPATH' ${PROFILE}`" ];then
-        echo "export GOPATH=\"${GO_PATH}\"" >> $PROFILE
+        echo "export GOPATH=\"${GO_PATH}\"" >> "${PROFILE}"
     else
-        sed -i "s@^export GOPATH.*@export GOPATH=\"${GO_PATH}\"@" $PROFILE
+        sed -i "" -e "s@^export GOPATH.*@export GOPATH=\"${GO_PATH}\"@" "${PROFILE}"
     fi
     
     if [ -z "`grep 'export\sGOBIN' ${PROFILE}`" ];then
-        echo "export GOBIN=\"\$GOPATH/bin\"" >> $PROFILE
+        echo "export GOBIN=\"\$GOPATH/bin\"" >> ${PROFILE}
     else 
-        sed -i "s@^export GOBIN.*@export GOBIN=\$GOPATH/bin@" $PROFILE        
+        sed -i "" -e "s@^export GOBIN.*@export GOBIN=\$GOPATH/bin@" "${PROFILE}"        
     fi   
 
     if [ -z "`grep 'export\sGO111MODULE' ${PROFILE}`" ];then
         if version_ge $RELEASE_TAG "go1.11.1"; then
-            echo "export GO111MODULE=on" >> $PROFILE
+            echo "export GO111MODULE=on" >> "${PROFILE}"
         fi
     fi       
 
     if [ "${IN_CHINA}" == "1" ]; then 
         if [ -z "`grep 'export\sGOSUMDB' ${PROFILE}`" ];then
-            echo "export GOSUMDB=off" >> $PROFILE
+            echo "export GOSUMDB=off" >> "${PROFILE}"
         fi      
     fi
 
@@ -220,11 +243,11 @@ set_environment() {
         if version_ge $RELEASE_TAG "go1.13"; then
             GOPROXY_TEXT="${GOPROXY_TEXT},direct"
         fi
-        echo "export GOPROXY=\"${GOPROXY_TEXT}\"" >> $PROFILE
+        echo "export GOPROXY=\"${GOPROXY_TEXT}\"" >> "${PROFILE}"
     fi  
     
     if [ -z "`grep '\$GOROOT/bin:\$GOBIN' ${PROFILE}`" ];then
-        echo "export PATH=\"\$PATH:\$GOROOT/bin:\$GOBIN\"" >> $PROFILE
+        echo "export PATH=\"\$PATH:\$GOROOT/bin:\$GOBIN\"" >> "${PROFILE}"
     fi        
 }
 
@@ -236,11 +259,11 @@ printf "
 ###############################################################
 ###  Golang Install
 ###
-###  Author:  Skiy Chan <dev@skiy.net>
-###  Link:    https://skiy.net 
+###  Author:  Jetsung Chan <skiy@jetsung.com>
+###  Link:    https://jetsung.com
 ###  Project: %s
 ###############################################################
-\n" $PROJECT_URL
+\n" "${PROJECT_URL}"
 }
 
 # show system information
@@ -251,7 +274,7 @@ printf "
 ###  Bit: %s 
 ###  Version: %s 
 ###############################################################
-\n" $OS $BIT $RELEASE_TAG
+\n" "${OS}" "${BIT}" "${RELEASE_TAG}"
 }
 
 # Show success message
@@ -260,7 +283,7 @@ printf "
 ###############################################################
 # Install success, please execute again \e[1;33msource %s\e[0m
 ###############################################################
-\n" $PROFILE
+\n" "${PROFILE}"
 }
 
 # show help message
@@ -274,7 +297,7 @@ Options:
   -h            : this help
   -v            : set go version (default: latest version)
   -d            : set go path (default: %s/.go/path)
-\n" $SCRIPT_NAME $HOME
+\n" "${SCRIPT_NAME}" "${HOME}"
 exit 1
 }
 
@@ -304,17 +327,20 @@ main() {
 
     # Download File
     BINARY_URL="${DOWNLOAD_URL}${RELEASE_TAG}.${OS}-${ARCH}.tar.gz"
-    DOWNLOAD_FILE="$(mktemp).tar.gz"
-    download_file $BINARY_URL $DOWNLOAD_FILE
+    # DOWNLOAD_FILE="$(mktemp).tar.gz"
+    # download_file $BINARY_URL $DOWNLOAD_FILE
 
-    # Tar file and move file
-    if [ ! -d "${HOME}/.go/path" ]; then
-        mkdir -p ${HOME}/.go/path
-    fi
+    # Remove go src
+    rm -rf "${HOME}/.go/go"
 
-    rm -rf ${HOME}/.go/go
-    tar -C ${HOME}/.go -zxf $DOWNLOAD_FILE
-    rm -rf $DOWNLOAD_FILE
+    # Create GOPATH
+    create_gopath
+
+    # tar -C ${HOME}/.go -zxf $DOWNLOAD_FILE
+    # rm -rf $DOWNLOAD_FILE
+
+    # Download and unpack
+    download_unpack "${BINARY_URL}"
     
     set_environment
     

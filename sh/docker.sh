@@ -22,6 +22,9 @@ EOF
 }
 
 main () {
+    OS=$(uname | tr '[:upper:]' '[:lower:]')
+    [ "${OS}" != "linux" ] && printf "\n\e[1;31mOnly support linux. \nYour OS: %s\e[0m\n" $"${OS}"; exit 1;
+
     IN_CHINA=0
 
     check_in_china
@@ -35,4 +38,4 @@ main () {
     fi
 }
 
-main "$@"
+main "$@" || exit 1

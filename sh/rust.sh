@@ -34,14 +34,15 @@ set_environment() {
 		if [ -z "`grep 'export\sRUSTUP_DIST_SERVER' ${PROFILE}`" ];then
 			echo "export RUSTUP_DIST_SERVER=\"${RUSTUP_DIST_SERVER}\"" >> $PROFILE
 		else
-			sed -i "s@^export RUSTUP_DIST_SERVER.*@export RUSTUP_DIST_SERVER=\"${RUSTUP_DIST_SERVER}\"@" $PROFILE
+			sed -i "" -e "s@^export RUSTUP_DIST_SERVER.*@export RUSTUP_DIST_SERVER=\"${RUSTUP_DIST_SERVER}\"@" $PROFILE
 		fi
 
 		if [ -z "`grep 'export\sRUSTUP_UPDATE_ROOT' ${PROFILE}`" ];then
 			echo "export RUSTUP_UPDATE_ROOT=\"${RUSTUP_DIST_SERVER}/rustup\"" >> $PROFILE
 		else
-			sed -i "s@^export RUSTUP_UPDATE_ROOT.*@export RUSTUP_UPDATE_ROOT=\"${RUSTUP_DIST_SERVER}/rustup\"@" $PROFILE
+			sed -i "" -e "s@^export RUSTUP_UPDATE_ROOT.*@export RUSTUP_UPDATE_ROOT=\"${RUSTUP_DIST_SERVER}/rustup\"@" $PROFILE
 		fi
+
 		source ${PROFILE}	
     fi	
 }
