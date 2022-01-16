@@ -17,7 +17,7 @@ main() {
 		sed -i "" -e "s@^export DOTNET_ROOT.*@export DOTNET_ROOT=\"${DOTNET_ROOT}\"@" $PROFILE
 	fi
 
-	if [ -z "`grep 'export\sPATH=\"\$DOTNET_ROOT:\$PATH\"' ${PROFILE}`" ];then
+	if [ -z "`grep 'export\sPATH=\"\$PATH:\$DOTNET_ROOT\"' ${PROFILE}`" ];then
 		echo "export PATH=\"\$PATH:\$DOTNET_ROOT\"" >> $PROFILE
 	fi
 
