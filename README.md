@@ -25,12 +25,12 @@ cd devent && ./install.sh
 - **GO**
 ```sh
 ## GOLANG
-export GOROOT="$HOME/.go/go"
-export GOPATH="$HOME/.go/path"
+export GOROOT="$HOME/.go"
+export GOPATH="$HOME/go"
 export GOBIN="$GOPATH/bin"
 export GO111MODULE=on
 export GOSUMDB=off
-export GOPROXY="https://goproxy.io,https://goproxy.cn,direct"
+export GOPROXY="https://goproxy.cn,https://goproxy.io,direct"
 export PATH="$PATH:$GOROOT/bin:$GOBIN"
 ```
 
@@ -87,6 +87,10 @@ export PATH="$PATH:$QT_INSTALL_PREFIX/bin"
 ```
 
 - **Python**
+```bash
+pip config set global.index-url  http://mirrors.cloud.tencent.com/pypi/simple  --trusted-host mirrors.cloud.tencent.com
+```
+
 > `~/.pip/pip.conf`
 ```
 [global]
