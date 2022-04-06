@@ -3,7 +3,7 @@
 load_vars() {
 	# Mirror ustc
 	# Set RUSTUP SERVER URL
-	RUSTUP_DIST_SERVER="https://mirrors.ustc.edu.cn/rust-static"
+	RUSTUP_DIST_SERVER="https://rsproxy.cn"
 
 	# Set environmental
 	PROFILE="${HOME}/.bashrc"
@@ -34,32 +34,40 @@ set_environment() {
 		if [ -z "`grep 'export\sRUSTUP_DIST_SERVER' ${PROFILE}`" ];then
 			echo "export RUSTUP_DIST_SERVER=\"${RUSTUP_DIST_SERVER}\"" >> $PROFILE
 		else
-			sed -i "" -e "s@^export RUSTUP_DIST_SERVER.*@export RUSTUP_DIST_SERVER=\"${RUSTUP_DIST_SERVER}\"@" $PROFILE
+			sed -i -e "s@^export RUSTUP_DIST_SERVER.*@export RUSTUP_DIST_SERVER=\"${RUSTUP_DIST_SERVER}\"@" $PROFILE
 		fi
 
 		if [ -z "`grep 'export\sRUSTUP_UPDATE_ROOT' ${PROFILE}`" ];then
 			echo "export RUSTUP_UPDATE_ROOT=\"${RUSTUP_DIST_SERVER}/rustup\"" >> $PROFILE
 		else
-			sed -i "" -e "s@^export RUSTUP_UPDATE_ROOT.*@export RUSTUP_UPDATE_ROOT=\"${RUSTUP_DIST_SERVER}/rustup\"@" $PROFILE
+			sed -i -e "s@^export RUSTUP_UPDATE_ROOT.*@export RUSTUP_UPDATE_ROOT=\"${RUSTUP_DIST_SERVER}/rustup\"@" $PROFILE
 		fi
 
 		source ${PROFILE}	
     fi	
 }
 
-# set China CDN
-set_china_cdn() {
-	if [ "${IN_CHINA}" == "1" ]; then 
-tee ${HOME}/.cargo/config <<-'EOF'
+install() {
+    if [ "${IN_CHINA}" == "1" ]; then 
+	curl --proto '=https' --tlsv1.2 -sSf https://rsproxy.cn/rustup-init.sh | sh
+	
+	tee ${HOME}/.cargo/config <<-'EOF'
 [source.crates-io]
-registry = "https://github.com/rust-lang/crates.io-index"
-replace-with = "ustc"
+replace-with = 'rsproxy'
 
-[source.ustc]
-registry = "git://mirrors.ustc.edu.cn/crates.io-index"
+[source.rsproxy]
+registry = "https://rsproxy.cn/crates.io-index"
+
+[registries.rsproxy]
+index = "https://rsproxy.cn/crates.io-index"
+
+[net]
+git-fetch-with-cli = true
 EOF
 
-	fi
+    else
+	curl --proto '=https' --tlsv1.2 -sSf https://rsproxy.cn/rustup-init.sh | sh
+    fi
 }
 
 main() {
@@ -69,13 +77,10 @@ main() {
 
 	set_environment
 
-	curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-
 	#if [ -z "`grep '\$HOME/.cargo/env' ${PROFILE}`" ];then
 	#        echo "source \"\$HOME/.cargo/env\"" >> $PROFILE
 	#fi 
-
-	set_china_cdn
+	install
 }
 
 main "$@" || exit 1
