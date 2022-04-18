@@ -17,7 +17,6 @@ latest_version() {
 set_mirror() {
     composer_url="https://mirrors.aliyun.com/composer/composer.phar"
     
-
     if [ "${IN_CHINA}" == "0" ]; then
         latest_version
 
@@ -26,20 +25,27 @@ set_mirror() {
 }
 
 main() {
-    path="/usr/local/bin/composer"
+    PROFILE="${HOME}/.bashrc"
+    
+    # path="/usr/local/bin/composer"
 
-    IN_CHINA=$(check_in_china)
+    # IN_CHINA=$(check_in_china)
 
-    set_mirror
+    # set_mirror
 	
-	if [ ! -f "${path}" ]; then
-        sudo curl -o "${path}" "${composer_url}"
-        sudo chmod +x "${path}"
-    fi	
+	# if [ ! -f "${path}" ]; then
+    #     sudo curl -o "${path}" "${composer_url}"
+    #     sudo chmod +x "${path}"
+    # fi	
 
-    if [ "${IN_CHINA}" == "0" ]; then
-        composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/
-    fi
+    # if [ "${IN_CHINA}" == "0" ]; then
+    #     composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/
+    # fi
+
+    if [ -z "`grep '\$HOME/.config/composer/vendor/bin' ${PROFILE}`" ];then
+        echo -e "\n## PHP" >> "${PROFILE}"
+        echo "export PATH=\"\$PATH:\$HOME/.config/composer/vendor/bin\"" >> "${PROFILE}"
+    fi  
 }
 
 main "$@" || exit 1

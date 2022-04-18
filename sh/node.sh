@@ -1,9 +1,11 @@
 #!/bin/bash
 
 # Node-Install
+# Project Home Page:
+# https://github.com/jetsung/devenv
+# https://jihulab.com/jetsung/devenv
 #
-# Author: Skiy Chan <dev@skiy.net>
-# Link: https://skiy.net
+# Author: Jetsung Chan <skiy@jetsung.com>
 
 load_vars() {
     # Mirror ustc
