@@ -27,6 +27,11 @@ set_environment() {
 
     [ ! -f "~/.bashrc" ] && touch ~/.bashrc
 
+    ## Update params
+    if version_ge $RELEASE_TAG "go1.13"; then
+        GOPROXY_TEXT="${GOPROXY_TEXT},direct"
+    fi
+
     if [ -z "`grep 'export\sGOROOT' ${PROFILE}`" ];then
         echo -e "\n## GOLANG" >> "${PROFILE}"
         echo "export GOROOT=\"\$HOME/.go\"" >> "${PROFILE}"
@@ -65,12 +70,11 @@ set_environment() {
     fi
 
     if [ -z "`grep 'export\sGOPROXY' ${PROFILE}`" ];then
-        if version_ge $RELEASE_TAG "go1.13"; then
-            GOPROXY_TEXT="${GOPROXY_TEXT},direct"
-        fi
         echo "export GOPROXY=\"${GOPROXY_TEXT}\"" >> "${PROFILE}"
-    fi  
-    
+    else
+        sed -i "s@^export GOPROXY.*@export GOPROXY=\"${GOPROXY_TEXT}\"@" "${PROFILE}"
+    fi
+
     if [ -z "`grep '\$GOROOT/bin:\$GOBIN' ${PROFILE}`" ];then
         echo "export PATH=\"\$PATH:\$GOROOT/bin:\$GOBIN\"" >> "${PROFILE}"
     fi        
@@ -123,6 +127,11 @@ main() {
     . ${realpath}/include.sh
 
 	load_vars
+
+    if [ "${IN_CHINA}" == "1" ]; then 
+        RELEASE_URL="https://golang.google.cn/dl/"
+        GOPROXY_TEXT="https://goproxy.cn,https://goproxy.io"  
+    fi
 
 	if command_exists go; then
 		pass_message "Go has installed"
