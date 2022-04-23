@@ -1,41 +1,56 @@
 #/bin/bash
 
-# check_in_china
-check_in_china() {
-    urlstatus=$(curl -s -m 5 -IL https://google.com | grep 200)
-    if [ "$urlstatus" == "" ]; then
-        IN_CHINA=1
-    fi
+load_vars() {
+    MIRROR_DOCKER="https://docker.mirrors.ustc.edu.cn/"
 }
 
 # https://mirrors.ustc.edu.cn/help/dockerhub.html
-set_docker_mirror() {
-    sudo mkdir -p /etc/docker
-    sudo tee /etc/docker/daemon.json <<-'EOF'
+set_environment() {
+    if [ "${IN_CHINA}" == "1" ]; then
+
+        sudo mkdir -p /etc/docker
+        sudo tee /etc/docker/daemon.json <<-EOF
 {
-  "registry-mirrors": ["https://docker.mirrors.ustc.edu.cn/"]
+  "registry-mirrors": ["${MIRROR_DOCKER}"]
 }
 EOF
 
-    sudo systemctl daemon-reload
-    sudo systemctl restart docker    
+        sudo systemctl daemon-reload
+        sudo systemctl restart docker    
+    fi
+}
+
+install() {
+    if [ "${IN_CHINA}" == "1" ]; then 
+        curl -fsSL https://get.docker.com | sudo bash -s docker --mirror Aliyun
+    else
+        curl -s https://get.docker.com/ | sudo bash
+    fi
 }
 
 main () {
-    OS=$(uname | tr '[:upper:]' '[:lower:]')
-    [ "${OS}" != "linux" ] && printf "\n\e[1;31mOnly support linux. \nYour OS: %s\e[0m\n" $"${OS}"; exit 1;
+    realpath=$(dirname "`readlink -f $0`")
+    . ${realpath}/include.sh
 
-    IN_CHINA=0
+	load_vars
 
-    check_in_china
-
-    if [ "${IN_CHINA}" == "1" ]; then 
-        curl -fsSL https://get.docker.com | sudo bash -s docker --mirror Aliyun
-        
-        set_docker_mirror
-    else
-        curl -s https://get.docker.com/ | sudo sh
+    if [ "${OS}" != "linux" ]; then
+        err_message "Only support linux. \nYour OS: ${OS}"
+        exit 1
     fi
+
+	if command_exists docker; then
+		pass_message "Docker has installed"
+
+        if [ "${1}x" = "x" ]; then
+    		docker version
+		    return
+        fi
+	else
+        install
+    fi	
+
+    set_environment
 }
 
 main "$@" || exit 1

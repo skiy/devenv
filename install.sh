@@ -1,50 +1,27 @@
 #/bin/bash
 
 ####
+##
+## Jetsung Chan <jetsungchan@gmail.com>
+##
+## https://jihulab.com/jetsung/devenv
 ## https://github.com/jetsung/devenv
-## https://gitcode.net/jetsung/devenv
+## 
 ####
 
-# get OS version
-init_os() {
-    OS=$(uname | tr '[:upper:]' '[:lower:]')
-    case $OS in
-        darwin) OS='darwin';;
-        linux) OS='linux';;
-        freebsd) OS='freebsd';;
-#        mingw*) OS='windows';;
-#        msys*) OS='windows';;
-        *) printf "\e[1;31mOS %s is not supported by this installation script\e[0m\n" $OS; exit 1;;
-    esac
-}
-
-# install curl,wget command
-install_dl_command() {
-    if !(test -x "$(command -v curl)"); then
-        if test -x "$(command -v yum)"; then
-            sudo yum install -y curl wget
-        elif test -x "$(command -v apt)"; then
-            sudo apt install -y curl wget
-        else 
-            printf "\e[1;31mYou must pre-install the curl,wget tool\e[0m\n"
-            exit 1
-        fi
-    fi  
-}
-
-message() {
-	echo -e "\n\e[1;31m${1}\e[0m"
-}
-
 load_vars() {
+	AUTHOR="Jetsung Chan <jetsungchan@gmail.com>"
+	PROJECT_URL="https://github.com/jetsung/devenv"
+	JIHULAB_URL="https://jihulab.com/jetsung/devenv"
+
 	# base
 	golang_path="sh/go.sh"
 	dotnet_path="sh/dotnet.sh"
 	node_path="sh/node.sh"
 	deno_path="sh/deno.sh"
-	python_path="sh/python.sh"
 
 	# need root
+	python_path="sh/python.sh"
 	docker_path="sh/docker.sh"
 	composer_path="sh/composer.sh"
 
@@ -55,103 +32,52 @@ load_vars() {
 ## golang
 install_golang() {
 	if [ -e "${golang_path}" ]; then
-		echo -e "\n\nInstalling Go\n"
-		bash ${golang_path}
+		echo -e "\n\nInstalling Go"
+		bash ${golang_path} up
 		source "${HOME}/.bashrc"
 		go version
 	fi
 }
 
-## dotnet
-install_dotnet() {
-	if test -x "$(command -v dotnet)"; then
-		message "dotnet has installed"
-		dotnet --version
-		return
-	fi
-
-	if [ -e "${dotnet_path}" ]; then
-		echo -e "\n\nInstalling Dotnet\n"
-		bash ${dotnet_path}
-		source "${HOME}/.bashrc"
-		dotnet --version
-	fi
-}
-
 ## nodejs
 install_nodejs() {
-	if test -x "$(command -v node)"; then
-		message "NodeJS has installed"
-		node --version
-		return
-	fi
-
 	if [ -e "${node_path}" ]; then
-		echo -e "\n\nInstalling NodeJS\n"
-		bash ${node_path}
+		echo -e "\n\nInstalling Node"
+		bash ${node_path} up
 		source "${HOME}/.bashrc"
-		node --version
+	    npm config list
+#     	printf "
+# npm version: %s
+# node version: %s
+# " $(npm --version) $(node --version)
 	fi
 }
 
 ## deno
 install_deno() {
-	if test -x "$(command -v deno)"; then
-		message "deno has installed"
-		deno --version
-		return
-	fi
-
 	if [ -e "${deno_path}" ]; then
-		echo -e "\n\nInstalling Deno\n"
-		bash ${deno_path}
+		echo -e "\n\nInstalling deno"
+		bash ${deno_path} up
 		source "${HOME}/.bashrc"
 		deno --version
 	fi
 }
 
-## rust
-install_rust() {
-	if test -x "$(command -v rustc)"; then
-		message "Rust has installed"
-		rustc --version
-		return
-	fi
-
-	if [ -e "${rust_path}" ]; then
-		echo -e "\n\nInstalling Rust\n"
-		bash ${rust_path}
+## dotnet
+install_dotnet() {
+	if [ -e "${dotnet_path}" ]; then
+		echo -e "\n\nInstalling dotnet"
+		bash ${dotnet_path} up
 		source "${HOME}/.bashrc"
-		rustc --version
-	fi
-}
-
-## docker
-install_docker() {
-	if test -x "$(command -v docker)"; then
-		message "Docker has installed"
-		docker --version
-		return
-	fi
-
-	if [ -e "${docker_path}" ]; then
-		echo -e "\n\nInstalling Docker\n"
-		bash ${docker_path}
-		source "${HOME}/.bashrc"
-		docker --version
+		dotnet --version
 	fi
 }
 
 ## python
 install_python() {
-	if test ! -x "$(command -v python3)"; then
-		message "Python3 is not installed"
-		return
-	fi
-
 	if [ -e "${python_path}" ]; then
-		echo -e "\n\nInstalling Python\n"
-		bash ${python_path}
+		echo -e "\n\nInstalling Python"
+		bash ${python_path} up
 		source "${HOME}/.bashrc"
 		python3 --version
 	fi	
@@ -159,34 +85,64 @@ install_python() {
 
 ## composer
 install_composer() {
-	if test ! -x "$(command -v php)"; then
-		message "PHP is not installed"
-		return
-	fi
-
 	if [ -e "${composer_path}" ]; then
-		echo -e "\n\nInstalling Composer\n"
-		bash ${composer_path}
-		composer --version
+		echo -e "\n\nInstalling Composer"
+		bash ${composer_path} up
+
+		if ! command_exists composer; then
+			err_message "Composer is not installed"
+		fi
 	fi		
 }
 
+## docker
+install_docker() {
+	if [ -e "${docker_path}" ]; then
+		echo -e "\n\nInstalling Docker"
+		bash ${docker_path} up
+		source "${HOME}/.bashrc"
+		docker --version
+	fi
+}
+
+## rust
+install_rust() {
+	if [ -e "${rust_path}" ]; then
+		echo -e "\n\nInstalling Rust"
+		bash ${rust_path} up
+		source "${HOME}/.bashrc"
+		rustc --version
+	fi
+}
+
 main() {
-	init_os
-	install_dl_command
+	. ./sh/include.sh
+
 	load_vars
 
+    if [ "${IN_CHINA}" == "1" ]; then
+		PROJECT_URL="${JIHULAB_URL}"
+	fi
+
+	printf "
+###############################################################
+###  DevEnv Install
+###
+###  Project: %s
+###
+###  Author:  %s
+###
+###############################################################
+\n" "${PROJECT_URL}" "${AUTHOR}"
+
+	## custom
 	install_golang
-
 	install_nodejs
-
 	install_deno
-
-	install_python
-
 	install_dotnet
 
 	## need root
+	install_python
 	install_composer
 	install_docker
 

@@ -1,26 +1,14 @@
 #/bin/bash
 
 load_vars() {
+	# Set environmental
+	PROFILE="${HOME}/.bashrc"
+
 	# Mirror ustc
 	# Set RUSTUP SERVER URL
 	RUSTUP_DIST_SERVER="https://rsproxy.cn"
 
-	# Set environmental
-	PROFILE="${HOME}/.bashrc"
-
-	# Set RUST ENV PATH
-	#ENV_PATH="\$HOME/.cargo/env"
-
-	# Is GWF
-	IN_CHINA=0
-}
-
-# check in china
-check_in_china() {
-    urlstatus=$(curl -s -m 3 -IL https://google.com | grep 200)
-    if [ "$urlstatus" == "" ]; then
-        IN_CHINA=1
-    fi
+	INSTALL_URL="https://sh.rustup.rs"
 }
 
 # set environment
@@ -30,6 +18,19 @@ set_environment() {
 	fi	
 	
     if [ "${IN_CHINA}" == "1" ]; then 
+		tee ${HOME}/.cargo/config <<-EOF
+[source.crates-io]
+replace-with = 'rsproxy'
+
+[source.rsproxy]
+registry = "${RUSTUP_DIST_SERVER}/crates.io-index"
+
+[registries.rsproxy]
+index = "${RUSTUP_DIST_SERVER}/crates.io-index"
+
+[net]
+git-fetch-with-cli = true
+EOF
 
 		if [ -z "`grep 'export\sRUSTUP_DIST_SERVER' ${PROFILE}`" ];then
 			echo "export RUSTUP_DIST_SERVER=\"${RUSTUP_DIST_SERVER}\"" >> $PROFILE
@@ -49,38 +50,34 @@ set_environment() {
 
 install() {
     if [ "${IN_CHINA}" == "1" ]; then 
-	curl --proto '=https' --tlsv1.2 -sSf https://rsproxy.cn/rustup-init.sh | sh
-	
-	tee ${HOME}/.cargo/config <<-'EOF'
-[source.crates-io]
-replace-with = 'rsproxy'
-
-[source.rsproxy]
-registry = "https://rsproxy.cn/crates.io-index"
-
-[registries.rsproxy]
-index = "https://rsproxy.cn/crates.io-index"
-
-[net]
-git-fetch-with-cli = true
-EOF
-
-    else
-	curl --proto '=https' --tlsv1.2 -sSf https://rsproxy.cn/rustup-init.sh | sh
+		INSTALL_URL="${RUSTUP_DIST_SERVER}/rustup-init.sh"
     fi
+	
+	curl --proto '=https' --tlsv1.2 -sSf "${INSTALL_URL}" | sh
 }
 
 main() {
+    realpath=$(dirname "`readlink -f $0`")
+    . ${realpath}/include.sh
+
 	load_vars
 
-	check_in_china
+	if command_exists rustc; then
+		pass_message "Rust has installed"
+
+        if [ "${1}x" = "x" ]; then
+			rustc --version
+		    return
+        fi
+	else
+        install
+    fi
 
 	set_environment
 
 	#if [ -z "`grep '\$HOME/.cargo/env' ${PROFILE}`" ];then
 	#        echo "source \"\$HOME/.cargo/env\"" >> $PROFILE
 	#fi 
-	install
 }
 
 main "$@" || exit 1

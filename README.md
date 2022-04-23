@@ -18,7 +18,7 @@ git clone https://github.com/jetsung/devenv.git
 # 或
 git clone https://jihulab.com/jetsung/devenv.git
 
-cd devent && ./install.sh
+cd devenv && ./install.sh
 ```
 
 ### 开发环境
