@@ -15,7 +15,7 @@ load_vars() {
     GOPROXY_TEXT="https://proxy.golang.org"
 
     # Set GOPATH PATH
-    GO_PATH="~/go"
+    GO_PATH="\$HOME/go"
 }
 
 # set golang environment
@@ -50,7 +50,13 @@ set_environment() {
         if version_ge $RELEASE_TAG "go1.11.1"; then
             echo "export GO111MODULE=on" >> "${PROFILE}"
         fi
-    fi       
+    fi   
+    
+    if [ -z "`grep 'export\sASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH' ${PROFILE}`" ];then
+        if version_ge $RELEASE_TAG "go1.17"; then
+            echo "export ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.18" >> "${PROFILE}"
+        fi
+    fi      
 
     if [ "${IN_CHINA}" == "1" ]; then 
         if [ -z "`grep 'export\sGOSUMDB' ${PROFILE}`" ];then
@@ -73,9 +79,8 @@ set_environment() {
 # create GOPATH folder
 create_gopath() {
     if [ ! -d "${GO_PATH}" ]; then
-        if [ "${GO_PATH}" = "~/go" ]; then
+        if [ "${GO_PATH}" = "\$HOME/go" ]; then
             mkdir -p ~/go
-            GO_PATH="\$HOME/go"
         else
             mkdir -p "${GO_PATH}"
         fi

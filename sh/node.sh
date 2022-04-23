@@ -46,7 +46,7 @@ set_environment() {
         sed -i "s@^export NODE_INSTALL.*@export NODE_INSTALL=\"${NODE_PATH}\"@" $PROFILE
     fi
 
-    if [ -z "`grep 'export\sPATH=\"\$NODE_INSTALL/bin:\$PATH\"' ${PROFILE}`" ];then
+    if [ -z "`grep 'export\sPATH=\"\$PATH:\$NODE_INSTALL/bin\"' ${PROFILE}`" ];then
         echo "export PATH=\"\$PATH:\$NODE_INSTALL/bin\"" >> $PROFILE
     fi
 }
