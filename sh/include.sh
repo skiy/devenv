@@ -29,6 +29,11 @@ get_arch() {
     esac
 }
 
+# get github latest
+get_latest_github() {
+    curl -sL "https://api.github.com/repos/${1}/releases/latest" | grep '"tag_name":' | cut -d'"' -f4
+}
+
 # pkg manager tool
 pkg_manager_tool() {
 	PKG_TOOL_NAME=""
@@ -102,6 +107,7 @@ pass_message() {
 # err message
 err_message() {
 	echo -e "\n\e[1;31m${1}\e[0m"
+    exit 1
 }
 
 load() {

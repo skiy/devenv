@@ -6,12 +6,13 @@ load_vars() {
 
 	# DOTNET_PATH
 	DOTNET_ROOT="\$HOME/.dotnet"
+	SAVE_PATH="${HOME}/.dotnet"
 
 	INSTALL_URL="https://dot.net/v1"
 }
 
 install() {
-	bash <(curl -fsSL ${INSTALL_URL}/dotnet-install.sh) -c 6.0
+	bash <(curl -fsSL ${INSTALL_URL}/dotnet-install.sh) -c 7.0
 }
 
 set_environment() {
@@ -36,10 +37,12 @@ main() {
 
 	load_vars
 
+    [[ "${1}" = "upgrade" ]] && rm -rf "${SAVE_PATH}"
+
 	if command_exists dotnet; then
 		pass_message "dotnet has installed"
 
-        if [ "${1}x" = "x" ]; then
+        if [[ -z "${1}" ]]; then
 			dotnet --version
 		    return
         fi

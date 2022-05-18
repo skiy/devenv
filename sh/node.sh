@@ -71,9 +71,7 @@ latest_version() {
 install() {
     latest_version
 
-    if [[ "${IN_CHINA}" == "1" ]]; then 
-        DOWNLOAD_URL="${MIRROR_NODE}"
-    fi
+    [[ -n "${IN_CHINA}" ]] && DOWNLOAD_URL="${MIRROR_NODE}"
 
     BINARY_URL="${DOWNLOAD_URL}${RELEASE_TAG}/node-${RELEASE_TAG}-${OS}-${ARCH}.tar.xz"
     DOWNLOAD_FILE="$(mktemp).tar.gz"

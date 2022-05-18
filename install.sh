@@ -19,6 +19,7 @@ load_vars() {
 	dotnet_path="sh/dotnet.sh"
 	node_path="sh/node.sh"
 	deno_path="sh/deno.sh"
+	flutter_path="sh/flutter.sh"
 
 	# need root
 	python_path="sh/python.sh"
@@ -60,6 +61,16 @@ install_deno() {
 		bash ${deno_path} up
 		source "${HOME}/.bashrc"
 		deno --version
+	fi
+}
+
+## flutter
+install_flutter() {
+	if [ -e "${flutter_path}" ]; then
+		echo -e "\n\nInstalling Flutter"
+		bash ${flutter_path} up
+		source "${HOME}/.bashrc"
+		flutter --version
 	fi
 }
 
@@ -139,6 +150,7 @@ main() {
 	install_golang
 	install_nodejs
 	install_deno
+	install_flutter
 	install_dotnet
 
 	## need root
