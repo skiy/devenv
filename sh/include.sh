@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # get OS
 get_os() {
@@ -48,7 +48,7 @@ command_exists() {
 # check in china
 check_in_china() {
     urlstatus=$(curl -s -m 2 -IL https://google.com | grep 200)
-    if [ "${urlstatus}"x == "x" ]; then
+    if [[ -z "${urlstatus}" ]]; then
         IN_CHINA=1
     fi
 }
@@ -56,9 +56,9 @@ check_in_china() {
 # install curl,wget command
 install_dl_command() {
     if ! command_exists curl; then
-        if [ "${PKG_TOOL_NAME}" = "yum" ]; then  
+        if [[ "${PKG_TOOL_NAME}" = "yum" ]]; then  
             sudo yum install -y curl wget
-        elif [ "${PKG_TOOL_NAME}" = "apt" ]; then  
+        elif [[ "${PKG_TOOL_NAME}" = "apt" ]]; then  
             sudo apt install -y curl wget
         else 
             err_message "You must pre-install the curl,wget tool"
@@ -68,7 +68,7 @@ install_dl_command() {
 }
 
 # compare version size 
-version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "$1"; }
+version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "${1}"; }
 
 # download file
 download_file() {
@@ -86,7 +86,7 @@ download_file() {
         exit 1
     fi
 
-    if [ "${code}" != "200" ]; then
+    if [[ "${code}" != "200" ]]; then
         printf "\e[1;31mRequest failed with code %s\e[0m\n" $code
         exit 1
     # else 
@@ -105,23 +105,23 @@ err_message() {
 }
 
 load() {
-    if [ "${OS}x" = "x" ]; then  
+    if [[ -z "${OS}" ]]; then  
         get_os
     fi
 
-    if [ "${ARCH}x" = "x" ] || [ "${ARCH_BIT}x" = "x" ] ; then
+    if [[ -z "${ARCH}" ]] || [[ -z "${ARCH_BIT}" ]] ; then
         get_arch
     fi
 
-    if [ "${PKG_TOOL_NAME}x" = "x" ]; then  
+    if [[ -z "${PKG_TOOL_NAME}" ]]; then  
         pkg_manager_tool
     fi
 
-    if [ "${IN_CHINA}x" = "x" ]; then
+    if [[ -z "${IN_CHINA}" ]]; then
         check_in_china
     fi
 
     install_dl_command
 }
 
-load "$@"
+load "$@" || exit 1

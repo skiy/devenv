@@ -1,4 +1,12 @@
-#/bin/bash
+#!/usr/bin/env bash
+#########################################################
+# Function : NodeJS Install                             #
+# Platform : Linux                                      #
+# Version  : 1.0.0                                      #
+# Date     : 2022-05-18                                 #
+# Author   : Jetsung Chan                               #
+# Contact  : jetsungchan@gmail.com                      #
+#########################################################
 
 load_vars() {
     # Set environmental
@@ -22,38 +30,40 @@ set_environment() {
     # installl new npm
     npm install -g npm 
 
-    if [ "${IN_CHINA}" == "1" ]; then
+    if [[ "${IN_CHINA}" == "1" ]]; then
         npm config set registry "${NPM_URL}"
     fi
 
-    if [ -z "`grep '## NODE' ${PROFILE}`" ];then
-            echo -e "\n## NODE" >> $PROFILE
+    if [[ -z "`grep '## NODE' ${PROFILE}`" ]];then
+            echo -e "\n## NODE" >> ${PROFILE}
     fi
 
-    if [ "${IN_CHINA}" == "1" ]; then 
-        if [ -z "`grep 'export\sNVM_NODEJS_ORG_MIRROR' ${PROFILE}`" ];then
-            echo "export NVM_NODEJS_ORG_MIRROR=\"${NVM_NODEJS_ORG_MIRROR}\"" >> $PROFILE
+    if [[ "${IN_CHINA}" == "1" ]]; then 
+        if [[ -z "`grep 'export\sNVM_NODEJS_ORG_MIRROR' ${PROFILE}`" ]];then
+            echo "export NVM_NODEJS_ORG_MIRROR=\"${NVM_NODEJS_ORG_MIRROR}\"" >> ${PROFILE}
         fi
 
-        if [ -z "`grep 'export\sNODE_MIRROR' ${PROFILE}`" ];then
-            echo "export NODE_MIRROR=\"${NODE_MIRROR}\"" >> $PROFILE
+        if [[ -z "`grep 'export\sNODE_MIRROR' ${PROFILE}`" ]];then
+            echo "export NODE_MIRROR=\"${NODE_MIRROR}\"" >> ${PROFILE}
         fi
     fi
     
-    if [ -z "`grep 'export\sNODE_INSTALL' ${PROFILE}`" ];then
-        echo "export NODE_INSTALL=\"${NODE_PATH}\"" >> $PROFILE
+    if [[ -z "`grep 'export\sNODE_INSTALL' ${PROFILE}`" ]];then
+        echo "export NODE_INSTALL=\"${NODE_PATH}\"" >> ${PROFILE}
     else
         sed -i "s@^export NODE_INSTALL.*@export NODE_INSTALL=\"${NODE_PATH}\"@" $PROFILE
     fi
 
-    if [ -z "`grep 'export\sPATH=\"\$PATH:\$NODE_INSTALL/bin\"' ${PROFILE}`" ];then
-        echo "export PATH=\"\$PATH:\$NODE_INSTALL/bin\"" >> $PROFILE
+    if [[ -z "`grep 'export\sPATH=\"\$PATH:\$NODE_INSTALL/bin\"' ${PROFILE}`" ]];then
+        echo "export PATH=\"\$PATH:\$NODE_INSTALL/bin\"" >> ${PROFILE}
     fi
+
+    show_info
 }
 
 # if RELEASE_TAG was not provided, assume latest
 latest_version() {
-    if [ -z "${RELEASE_TAG}" ]; then
+    if [[ -z "${RELEASE_TAG}" ]]; then
         RELEASE_TAG="$(curl -sL https://nodejs.org/en/ | sed -n '/home-downloadbutton/p' | head -n 1 | cut -d '"' -f 8)"
     fi
 }
@@ -61,7 +71,7 @@ latest_version() {
 install() {
     latest_version
 
-    if [ "${IN_CHINA}" == "1" ]; then 
+    if [[ "${IN_CHINA}" == "1" ]]; then 
         DOWNLOAD_URL="${MIRROR_NODE}"
     fi
 
@@ -79,7 +89,7 @@ install() {
         fi
     fi
 
-    if [ ! -d "${HOME}/.node" ]; then
+    if [[ ! -d "${HOME}/.node" ]]; then
         mkdir "${HOME}/.node"
     fi
 
@@ -104,10 +114,12 @@ main () {
 
 	load_vars
 
+    [[ "${1}" = "upgrade" ]] && rm -rf "${HOME}/.node"
+
 	if command_exists node; then
 		pass_message "Node has installed"
 
-        if [ "${1}x" = "x" ]; then
+        if [[ -z "${1}" ]]; then
     		show_info
 		    return
         fi
