@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # load var
 load_vars() {
@@ -21,7 +21,7 @@ load_vars() {
 # set golang environment
 set_environment() {
     # check .zshrc on MacOS
-    if [ -f "${HOME}"/.zshrc ] && [ -z "`grep \~\/\.bashrc ${HOME}/.zshrc`" ];then
+    if [[ -f "${HOME}"/.zshrc ]] && [[ -z "`grep \~\/\.bashrc ${HOME}/.zshrc`" ]];then
         echo -e "\n. ~/.bashrc" >> "${HOME}/.zshrc"
 	fi
 
@@ -32,57 +32,59 @@ set_environment() {
         GOPROXY_TEXT="${GOPROXY_TEXT},direct"
     fi
 
-    if [ -z "`grep 'export\sGOROOT' ${PROFILE}`" ];then
+    if [[ -z "`grep 'export\sGOROOT' ${PROFILE}`" ]];then
         echo -e "\n## GOLANG" >> "${PROFILE}"
         echo "export GOROOT=\"\$HOME/.go\"" >> "${PROFILE}"
     else
         sed -i "s@^export GOROOT.*@export GOROOT=\"\$HOME/.go\"@" "${PROFILE}"
     fi
 
-    if [ -z "`grep 'export\sGOPATH' ${PROFILE}`" ];then
+    if [[ -z "`grep 'export\sGOPATH' ${PROFILE}`" ]];then
         echo "export GOPATH=\"${GO_PATH}\"" >> "${PROFILE}"
     else
         sed -i "s@^export GOPATH.*@export GOPATH=\"${GO_PATH}\"@" "${PROFILE}"
     fi
     
-    if [ -z "`grep 'export\sGOBIN' ${PROFILE}`" ];then
-        echo "export GOBIN=\"\$GOPATH/bin\"" >> ${PROFILE}
+    if [[ -z "`grep 'export\sGOBIN' ${PROFILE}`" ]];then
+        echo "export GOBIN=\"\$GOPATH/bin\"" >> "${PROFILE}"
     else 
         sed -i "s@^export GOBIN.*@export GOBIN=\$GOPATH/bin@" "${PROFILE}"     
     fi   
 
-    if [ -z "`grep 'export\sGO111MODULE' ${PROFILE}`" ];then
-        if version_ge $RELEASE_TAG "go1.11.1"; then
+    if [[ -z "`grep 'export\sGO111MODULE' ${PROFILE}`" ]];then
+        if version_ge "${RELEASE_TAG}" "go1.11.1"; then
             echo "export GO111MODULE=on" >> "${PROFILE}"
         fi
     fi   
     
     if [ -z "`grep 'export\sASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH' ${PROFILE}`" ];then
-        if version_ge $RELEASE_TAG "go1.17"; then
+        if version_ge "${RELEASE_TAG}" "go1.17"; then
             echo "export ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.18" >> "${PROFILE}"
         fi
     fi      
 
-    if [ "${IN_CHINA}" == "1" ]; then 
+    if [[ -n "${IN_CHINA}" ]]; then 
         if [ -z "`grep 'export\sGOSUMDB' ${PROFILE}`" ];then
             echo "export GOSUMDB=off" >> "${PROFILE}"
         fi      
     fi
 
-    if [ -z "`grep 'export\sGOPROXY' ${PROFILE}`" ];then
+    if [[ -z "`grep 'export\sGOPROXY' ${PROFILE}`" ]];then
         echo "export GOPROXY=\"${GOPROXY_TEXT}\"" >> "${PROFILE}"
     else
         sed -i "s@^export GOPROXY.*@export GOPROXY=\"${GOPROXY_TEXT}\"@" "${PROFILE}"
     fi
 
-    if [ -z "`grep '\$GOROOT/bin:\$GOBIN' ${PROFILE}`" ];then
+    if [[ -z "`grep '\$GOROOT/bin:\$GOBIN' ${PROFILE}`" ]];then
         echo "export PATH=\"\$PATH:\$GOROOT/bin:\$GOBIN\"" >> "${PROFILE}"
     fi        
+
+    [[ -n "${1}" ]] || show_info
 }
 
 # create GOPATH folder
 create_gopath() {
-    if [ ! -d "${GO_PATH}" ]; then
+    if [[ ! -d "${GO_PATH}" ]]; then
         if [ "${GO_PATH}" = "\$HOME/go" ]; then
             mkdir -p ~/go
         else
@@ -105,10 +107,16 @@ download_unpack() {
     mv /tmp/go ~/.go
 }
 
+show_info() {
+    source "${PROFILE}"
+
+    go version
+}
+
 install() {
     latest_version
 
-    if [ "${ARCH}" = "x64" ]; then
+    if [[ "${ARCH}" = "x64" ]]; then
         ARCH="amd64"
     fi
 
@@ -128,7 +136,7 @@ main() {
 
 	load_vars
 
-    if [ "${IN_CHINA}" == "1" ]; then 
+    if [[ -n "${IN_CHINA}" ]]; then 
         RELEASE_URL="https://golang.google.cn/dl/"
         GOPROXY_TEXT="https://goproxy.cn,https://goproxy.io"  
     fi
@@ -136,15 +144,15 @@ main() {
 	if command_exists go; then
 		pass_message "Go has installed"
 
-        if [ "${1}x" = "x" ]; then
-			go version
+        if [[ -z "${1}" ]]; then
+    		show_info
 		    return
         fi
 	else
         install
     fi	
 
-    set_environment
+    set_environment "${1}"
 }
 
 main "$@" || exit 1

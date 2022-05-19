@@ -14,22 +14,22 @@ load_vars() {
 
     SAVE_PATH="${HOME}/.flutter" 
 
-    PROJECT_URL="https://storage.googleapis.com/"
-    PROJECT_URL_CN="https://storage.flutter-io.cn/"
+    STORAGE_BASE_URL="https://storage.googleapis.com/"
+
+    FLUTTER_STORAGE_BASE_URL="https://storage.flutter-io.cn/"
+    PUB_HOSTED_URL="https://pub.flutter-io.cn"
 }
 
 install() {
     get_latest_github "flutter/flutter"
     LATEST_VERSION=$(get_latest_github "flutter/flutter")
-    echo ${LATEST_VERSION}
 
     if [[ -n "${IN_CHINA}" ]]; then
-        PROJECT_URL_JSON="${PROJECT_URL_CN}flutter_infra_release/releases/releases_linux.json"
-        PROJECT_URL="${PROJECT_URL_CN}"
+        PROJECT_URL_JSON="${FLUTTER_STORAGE_BASE_URL}flutter_infra_release/releases/releases_linux.json"
+        STORAGE_BASE_URL="${FLUTTER_STORAGE_BASE_URL}"
     else
-        PROJECT_URL_JSON="${PROJECT_URL}flutter_infra_release/releases/releases_linux.json"
+        PROJECT_URL_JSON="${STORAGE_BASE_URL}flutter_infra_release/releases/releases_linux.json"
     fi
-    echo ${PROJECT_URL_JSON}
 
     FILE_URI=$(curl -sL "${PROJECT_URL_JSON}" \
         | head -n 20 \
@@ -40,7 +40,7 @@ install() {
         | sed 's/"//g' \
         | sed 's/ //g')
 
-    DOWNLOWD_URL="${PROJECT_URL}flutter_infra_release/releases/${FILE_URI}"
+    DOWNLOWD_URL="${STORAGE_BASE_URL}flutter_infra_release/releases/${FILE_URI}"
     TMPFILE="/tmp/flutter.tar.xz"
 
     [[ -f "${TMPFILE}" ]] || curl -sL -o "${TMPFILE}" "${DOWNLOWD_URL}"
@@ -57,11 +57,21 @@ set_environment() {
             echo -e "\n## Flutter" >> ${PROFILE}
     fi
 
+    if [[ -n "${IN_CHINA}" ]]; then
+        if [[ -z "`grep 'export\sFLUTTER_STORAGE_BASE_URL' ${PROFILE}`" ]];then
+            echo "export FLUTTER_STORAGE_BASE_URL=\"${FLUTTER_STORAGE_BASE_URL}\"" >> ${PROFILE}
+        fi  
+
+        if [[ -z "`grep 'export\sPUB_HOSTED_URL' ${PROFILE}`" ]];then
+            echo "export PUB_HOSTED_URL=\"${PUB_HOSTED_URL}\"" >> ${PROFILE}
+        fi  
+    fi
+
     if [[ -z "`grep 'export\sPATH=\"\$PATH:\$HOME/.flutter/bin\"' ${PROFILE}`" ]];then
         echo "export PATH=\"\$PATH:\$HOME/.flutter/bin\"" >> ${PROFILE}
     fi
 
-    show_info
+    [[ -n "${1}" ]] || show_info
 }
 
 show_info() {
@@ -87,9 +97,9 @@ main() {
         fi
 	else
         install
-    fi	
+    fi
 
-    set_environment
+    set_environment "${1}"
 }
 
 main "$@" || exit 1

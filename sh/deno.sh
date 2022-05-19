@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 load_vars() {
     # Set environmental
@@ -12,23 +12,31 @@ load_vars() {
 }
 
 set_environment() {
-    if [ -z "`grep '## DENO' ${PROFILE}`" ];then
-        echo -e "\n## DENO" >> $PROFILE
+    if [[ -z "`grep '## DENO' ${PROFILE}`" ]];then
+        echo -e "\n## DENO" >> "${PROFILE}"
     fi
 
-    if [ -z "`grep 'export\sDENO_INSTALL' ${PROFILE}`" ];then
-        echo "export DENO_INSTALL=\"${DENO_PATH}\"" >> $PROFILE
+    if [[ -z "`grep 'export\sDENO_INSTALL' ${PROFILE}`" ]];then
+        echo "export DENO_INSTALL=\"${DENO_PATH}\"" >> "${PROFILE}"
     else
         sed -i "s@^export DENO_INSTALL.*@export DENO_INSTALL=\"${DENO_PATH}\"@" $PROFILE
     fi
 
-    if [ -z "`grep 'export\sPATH=\"\$PATH:\$DENO_INSTALL/bin\"' ${PROFILE}`" ];then
-        echo "export PATH=\"\$PATH:\$DENO_INSTALL/bin\"" >> $PROFILE
+    if [[ -z "`grep 'export\sPATH=\"\$PATH:\$DENO_INSTALL/bin\"' ${PROFILE}`" ]];then
+        echo "export PATH=\"\$PATH:\$DENO_INSTALL/bin\"" >> "${PROFILE}"
     fi
+
+    [[ -n "${1}" ]] || show_info
+}
+
+show_info() {
+    source "${PROFILE}"
+
+    deno --version
 }
 
 install() {
-    if [ "${IN_CHINA}" == "1" ]; then
+    if [[ -n "${IN_CHINA}" ]]; then
         trap 'rm -f "${TMPFILE}"' EXIT
         # echo "Save file to ${TMPFILE}"
 
@@ -51,15 +59,15 @@ main() {
 	if command_exists deno; then
 		pass_message "deno has installed"
 
-        if [ "${1}x" = "x" ]; then
-    		deno --version
+        if [[ -z "${1}" ]]; then
+    		show_info
 		    return
         fi
 	else
         install
     fi	
 
-    set_environment
+    set_environment "${1}"
 }
 
 main "$@" || exit 1

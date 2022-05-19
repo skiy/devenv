@@ -58,7 +58,7 @@ set_environment() {
         echo "export PATH=\"\$PATH:\$NODE_INSTALL/bin\"" >> ${PROFILE}
     fi
 
-    show_info
+    [[ -n "${1}" ]] || show_info
 }
 
 # if RELEASE_TAG was not provided, assume latest
@@ -125,7 +125,7 @@ main () {
         install
     fi	
 
-    set_environment
+    set_environment "${1}"
 }
 
 main "$@" || exit 1

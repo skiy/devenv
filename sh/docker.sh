@@ -1,4 +1,4 @@
-#/bin/bash
+#!/usr/bin/env bash
 
 load_vars() {
     MIRROR_DOCKER="https://docker.mirrors.ustc.edu.cn/"
@@ -6,10 +6,9 @@ load_vars() {
 
 # https://mirrors.ustc.edu.cn/help/dockerhub.html
 set_environment() {
-    if [ "${IN_CHINA}" == "1" ]; then
-
+    if [[ -n "${IN_CHINA}" ]]; then
         sudo mkdir -p /etc/docker
-        sudo tee /etc/docker/daemon.json <<-EOF
+        sudo tee /etc/docker/daemon.json >/dev/null 2>&1 <<-EOF
 {
   "registry-mirrors": ["${MIRROR_DOCKER}"]
 }
@@ -18,10 +17,16 @@ EOF
         sudo systemctl daemon-reload
         sudo systemctl restart docker    
     fi
+
+    [[ -n "${1}" ]] || show_info
+}
+
+show_info() {
+    docker version
 }
 
 install() {
-    if [ "${IN_CHINA}" == "1" ]; then 
+    if [[ -n "${IN_CHINA}" ]]; then 
         curl -fsSL https://get.docker.com | sudo bash -s docker --mirror Aliyun
     else
         curl -s https://get.docker.com/ | sudo bash
@@ -34,7 +39,7 @@ main () {
 
 	load_vars
 
-    if [ "${OS}" != "linux" ]; then
+    if [[ "${OS}" != "linux" ]]; then
         err_message "Only support linux. \nYour OS: ${OS}"
         exit 1
     fi
@@ -42,15 +47,15 @@ main () {
 	if command_exists docker; then
 		pass_message "Docker has installed"
 
-        if [ "${1}x" = "x" ]; then
-    		docker version
+        if [[ -z "${1}" ]]; then
+    		show_info
 		    return
         fi
 	else
         install
     fi	
 
-    set_environment
+    set_environment "${1}"
 }
 
 main "$@" || exit 1

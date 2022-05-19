@@ -1,12 +1,15 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 load_vars() {
+    # Set environmental
+    PROFILE="${HOME}/.bashrc"
+
     MIRROR_PYTHON="pypi.tuna.tsinghua.edu.cn"
 }
 
 set_environment() {
     if test -x "$(dpkg -l | grep python3-distutils)"; then
-        if [ "${PKG_TOOL_NAME}" = "apt" ]; then  
+        if [[ "${PKG_TOOL_NAME}" = "apt" ]]; then  
             sudo apt install -y python3-distutils
         fi
     fi
@@ -16,7 +19,7 @@ set_environment() {
     fi
 
     if command_exists pip; then
-        if [ "${IN_CHINA}" == "1" ]; then
+        if [[ -n "${IN_CHINA}" ]]; then
             # pip install pip -U
             pip install -i "https://${MIRROR_PYTHON}/simple" pip -U  
             pip config set global.index-url "https://${MIRROR_PYTHON}/simple" --trusted-host ${MIRROR_PYTHON}
@@ -24,11 +27,17 @@ set_environment() {
     fi
 }
 
+show_info() {
+    source "${PROFILE}"
+
+	python3 --version
+}
+
 install() {
     if ! command_exists python3; then
-        if [ "${PKG_TOOL_NAME}" = "yum" ]; then  
+        if [[ "${PKG_TOOL_NAME}" = "yum" ]]; then  
             sudo yum install -y python3
-        elif [ "${PKG_TOOL_NAME}" = "apt" ]; then  
+        elif [[ "${PKG_TOOL_NAME}" = "apt" ]]; then  
             sudo apt install -y python3
         else 
             err_message "What's pkg manager tool?"
@@ -46,15 +55,15 @@ main() {
 	if command_exists python3; then
 		pass_message "Python has installed"
 
-        if [ "${1}x" = "x" ]; then
-		    python3 --version
+        if [[ -z "${1}" ]]; then
+    		show_info
 		    return
         fi
 	else
         install
     fi
 
-	set_environment
+    set_environment "${1}"
 }
 
 main "$@" || exit 1

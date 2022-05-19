@@ -1,4 +1,4 @@
-#/bin/bash
+#!/usr/bin/env bash
 
 load_vars() {
 	# Set environmental
@@ -13,12 +13,12 @@ load_vars() {
 
 # set environment
 set_environment() {
-	if [ -z "`grep '## RUST' ${PROFILE}`" ];then
-			echo -e "\n## RUST" >> $PROFILE
+	if [[ -z "`grep '## RUST' ${PROFILE}`" ]];then
+			echo -e "\n## RUST" >> "${PROFILE}"
 	fi	
 	
-    if [ "${IN_CHINA}" == "1" ]; then 
-		tee ${HOME}/.cargo/config <<-EOF
+    if [[ -n "${IN_CHINA}" ]]; then 
+		tee ${HOME}/.cargo/config > /dev/null 2>&1 <<-EOF
 [source.crates-io]
 replace-with = 'rsproxy'
 
@@ -32,24 +32,31 @@ index = "${RUSTUP_DIST_SERVER}/crates.io-index"
 git-fetch-with-cli = true
 EOF
 
-		if [ -z "`grep 'export\sRUSTUP_DIST_SERVER' ${PROFILE}`" ];then
-			echo "export RUSTUP_DIST_SERVER=\"${RUSTUP_DIST_SERVER}\"" >> $PROFILE
+		if [[ -z "`grep 'export\sRUSTUP_DIST_SERVER' ${PROFILE}`" ]];then
+			echo "export RUSTUP_DIST_SERVER=\"${RUSTUP_DIST_SERVER}\"" >> "${PROFILE}"
 		else
-			sed -i -e "s@^export RUSTUP_DIST_SERVER.*@export RUSTUP_DIST_SERVER=\"${RUSTUP_DIST_SERVER}\"@" $PROFILE
+			sed -i "s@^export RUSTUP_DIST_SERVER.*@export RUSTUP_DIST_SERVER=\"${RUSTUP_DIST_SERVER}\"@" "${PROFILE}"
 		fi
 
-		if [ -z "`grep 'export\sRUSTUP_UPDATE_ROOT' ${PROFILE}`" ];then
-			echo "export RUSTUP_UPDATE_ROOT=\"${RUSTUP_DIST_SERVER}/rustup\"" >> $PROFILE
+		if [[ -z "`grep 'export\sRUSTUP_UPDATE_ROOT' ${PROFILE}`" ]];then
+			echo "export RUSTUP_UPDATE_ROOT=\"${RUSTUP_DIST_SERVER}/rustup\"" >> "${PROFILE}"
 		else
-			sed -i -e "s@^export RUSTUP_UPDATE_ROOT.*@export RUSTUP_UPDATE_ROOT=\"${RUSTUP_DIST_SERVER}/rustup\"@" $PROFILE
+			sed -i "s@^export RUSTUP_UPDATE_ROOT.*@export RUSTUP_UPDATE_ROOT=\"${RUSTUP_DIST_SERVER}/rustup\"@" "${PROFILE}"
 		fi
-
-		source ${PROFILE}	
     fi	
+
+    [[ -n "${1}" ]] || show_info
+}
+
+show_info() {
+    source "${PROFILE}"
+
+	rustc --version
+	rustup --version
 }
 
 install() {
-    if [ "${IN_CHINA}" == "1" ]; then 
+    if [[ -n "${IN_CHINA}" ]]; then 
 		INSTALL_URL="${RUSTUP_DIST_SERVER}/rustup-init.sh"
     fi
 	
@@ -65,15 +72,15 @@ main() {
 	if command_exists rustc; then
 		pass_message "Rust has installed"
 
-        if [ "${1}x" = "x" ]; then
-			rustc --version
+        if [[ -z "${1}" ]]; then
+    		show_info
 		    return
         fi
 	else
         install
-    fi
+    fi	
 
-	set_environment
+    set_environment "${1}"
 
 	#if [ -z "`grep '\$HOME/.cargo/env' ${PROFILE}`" ];then
 	#        echo "source \"\$HOME/.cargo/env\"" >> $PROFILE
