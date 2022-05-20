@@ -42,11 +42,11 @@ install() {
 
         TMPFILE=$(mktemp) || exit 1
 
-        curl -sL -o "${TMPFILE}" "${CHINA_MIRROR_URL}${BASH_URL}"
+        curl -sL -o "${TMPFILE}" "${CHINA_MIRROR_URL}${INSTALL_URL}"
         sed -i "s@deno_uri=\"https://github.com@deno_uri=\"${CHINA_MIRROR_URL}https://github.com@" "${TMPFILE}"
         bash ${TMPFILE}
     else
-        curl -fsL "${BASH_URL}" | bash
+        curl -fsL "${INSTALL_URL}" | bash
     fi
 }
 
