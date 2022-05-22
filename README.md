@@ -32,6 +32,7 @@ export GO111MODULE=on
 export GOSUMDB=off
 export GOPROXY="https://goproxy.cn,https://goproxy.io,direct"
 export PATH="$PATH:$GOROOT/bin:$GOBIN"
+export ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.18
 ```
 
 - **RUST**
@@ -47,6 +48,13 @@ export RUSTUP_UPDATE_ROOT="https://mirrors.ustc.edu.cn/rust-static/rustup"
 ## DOTNET
 export DOTNET_ROOT="$HOME/.dotnet"
 export PATH="$PATH:$DOTNET_ROOT"
+```
+
+- **Flutter**
+```bash
+export FLUTTER_STORAGE_BASE_URL="https://storage.flutter-io.cn/"
+export PUB_HOSTED_URL="https://pub.flutter-io.cn"
+export PATH="$PATH:$HOME/.flutter/bin"
 ```
 
 - **DENO**
