@@ -49,6 +49,7 @@ EOF
 }
 
 show_info() {
+	PS1='$ '
     source "${PROFILE}"
 
 	rustc --version
@@ -63,11 +64,11 @@ install() {
 	curl --proto '=https' --tlsv1.2 -sSf "${INSTALL_URL}" | sh
 }
 
-main() {
+load_include() {
     realpath=$(dirname "`readlink -f $0`")
 
 	include_tmp_path="/tmp/include_devenv.sh"
-	include_file_url="https://jihulab.com/jetsung/devenv/-/raw/main/sh/include.sh"
+	include_file_url="https://jihulab.com/jetsung/devenv/raw/main/sh/include.sh"
 	if [[ -f "${realpath}/include.sh" ]]; then
     	. ${realpath}/include.sh
 	elif [[ -f "${include_tmp_path}" ]]; then
@@ -76,6 +77,10 @@ main() {
 		curl -sL -o "${include_tmp_path}" "${include_file_url}"
 		[[ -f "${include_tmp_path}" ]] && . "${include_tmp_path}"
 	fi
+}
+
+main() {
+	load_include
 
 	load_vars
 
