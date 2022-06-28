@@ -39,9 +39,23 @@ set_environment() {
     [[ -n "${1}" ]] || show_info
 }
 
-main() {
+load_include() {
     realpath=$(dirname "`readlink -f $0`")
-    . ${realpath}/include.sh
+
+	include_tmp_path="/tmp/include_devenv.sh"
+	include_file_url="https://jihulab.com/jetsung/devenv/raw/main/sh/include.sh"
+	if [[ -f "${realpath}/include.sh" ]]; then
+    	. ${realpath}/include.sh
+	elif [[ -f "${include_tmp_path}" ]]; then
+		. "${include_tmp_path}"
+	else
+		curl -sL -o "${include_tmp_path}" "${include_file_url}"
+		[[ -f "${include_tmp_path}" ]] && . "${include_tmp_path}"
+	fi
+}
+
+main() {
+	load_include
 
 	load_vars
 
