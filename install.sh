@@ -154,11 +154,11 @@ main() {
 	install_dotnet
 
 	## need root
-	install_python
 	install_composer
 	install_docker
 
 	## need enter any key
+	install_python
 	install_rust
 }
 

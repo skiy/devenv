@@ -6,7 +6,7 @@ load_vars() {
 
 # https://mirrors.ustc.edu.cn/help/dockerhub.html
 set_environment() {
-    if [[ -n "${IN_CHINA}" ]]; then
+    if [ -n "${IN_CHINA}" ]; then
         sudo mkdir -p /etc/docker
         sudo tee /etc/docker/daemon.json >/dev/null 2>&1 <<-EOF
 {
@@ -18,7 +18,7 @@ EOF
         sudo systemctl restart docker    
     fi
 
-    [[ -n "${1}" ]] || show_info
+    [ -n "${1}" ] || show_info
 }
 
 show_info() {
@@ -26,7 +26,7 @@ show_info() {
 }
 
 install() {
-    if [[ -n "${IN_CHINA}" ]]; then 
+    if [ -n "${IN_CHINA}" ]; then 
         curl -fsSL https://get.docker.com | sudo bash -s docker --mirror Aliyun
     else
         curl -s https://get.docker.com/ | sudo bash
@@ -35,25 +35,23 @@ install() {
 
 load_include() {
     realpath=$(dirname "`readlink -f $0`")
-
 	include_tmp_path="/tmp/include_devenv.sh"
 	include_file_url="https://jihulab.com/jetsung/devenv/raw/main/sh/include.sh"
-	if [[ -f "${realpath}/include.sh" ]]; then
+	if [ -f "${realpath}/include.sh" ]; then
     	. ${realpath}/include.sh
-	elif [[ -f "${include_tmp_path}" ]]; then
+	elif [ -f "${include_tmp_path}" ]; then
 		. "${include_tmp_path}"
 	else
 		curl -sL -o "${include_tmp_path}" "${include_file_url}"
-		[[ -f "${include_tmp_path}" ]] && . "${include_tmp_path}"
+		[ -f "${include_tmp_path}" ] && . "${include_tmp_path}"
 	fi
 }
 
 main() {
 	load_include
-
 	load_vars
 
-    if [[ "${OS}" != "linux" ]]; then
+    if [ "${OS}" != "linux" ]; then
         err_message "Only support linux. \nYour OS: ${OS}"
         exit 1
     fi
@@ -61,7 +59,7 @@ main() {
 	if command_exists docker; then
 		pass_message "Docker has installed"
 
-        if [[ -z "${1}" ]]; then
+        if [ -z "${1}" ]; then
     		show_info
 		    return
         fi

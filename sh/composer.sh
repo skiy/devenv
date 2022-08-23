@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
 
 load_vars() {
-    PROFILE="${HOME}/.bashrc"
-    
     MIRROR_COMPOSER="https://mirrors.aliyun.com/composer/"
 
     COMPOSER_DOWNLOAD_URL="https://mirrors.aliyun.com/composer/composer.phar"
@@ -10,16 +8,10 @@ load_vars() {
 }
 
 set_environment() {
-    if [[ -n "${IN_CHINA}" ]]; then
-        composer config -g repo.packagist composer "${MIRROR_COMPOSER}"
-    fi
-
-    if [[ -z "`grep '\$HOME/.config/composer/vendor/bin' ${PROFILE}`" ]];then
+    if [ -z "`grep '\$HOME/.config/composer/vendor/bin' ${PROFILE}`" ];then
         echo -e "\n## PHP" >> "${PROFILE}"
         echo "export PATH=\"\$PATH:\$HOME/.config/composer/vendor/bin\"" >> "${PROFILE}"
     fi  
-
-    [[ -n "${1}" ]] || show_info
 }
 
 latest_version() {
@@ -30,14 +22,25 @@ show_info() {
     composer --version
 }
 
+set_mirror() {
+    if [ -n "${IN_CHINA}" ]; then
+        composer config -g repo.packagist composer "${MIRROR_COMPOSER}"
+    fi
+}
+
 install() {
-    if [[ -z "${IN_CHINA}" ]]; then
+     if [ "${OS}" = "darwin" ]; then
+        brew install composer
+        return
+     fi
+
+    if [ -z "${IN_CHINA}" ]; then
         latest_version
 
         COMPOSER_DOWNLOAD_URL="https://getcomposer.org/download/${RELEASE_TAG}/composer.phar"
     fi
 
-	if [[ ! -f "${COMPOSER_PATH}" ]]; then
+	if [ ! -f "${COMPOSER_PATH}" ]; then
         sudo curl -o "${COMPOSER_PATH}" -fsL "${COMPOSER_DOWNLOAD_URL}"
         sudo chmod +x "${COMPOSER_PATH}"
     fi	
@@ -45,16 +48,15 @@ install() {
 
 load_include() {
     realpath=$(dirname "`readlink -f $0`")
-
 	include_tmp_path="/tmp/include_devenv.sh"
 	include_file_url="https://jihulab.com/jetsung/devenv/raw/main/sh/include.sh"
-	if [[ -f "${realpath}/include.sh" ]]; then
+	if [ -f "${realpath}/include.sh" ]; then
     	. ${realpath}/include.sh
-	elif [[ -f "${include_tmp_path}" ]]; then
+	elif [ -f "${include_tmp_path}" ]; then
 		. "${include_tmp_path}"
 	else
 		curl -sL -o "${include_tmp_path}" "${include_file_url}"
-		[[ -f "${include_tmp_path}" ]] && . "${include_tmp_path}"
+		[ -f "${include_tmp_path}" ] && . "${include_tmp_path}"
 	fi
 }
 
@@ -68,10 +70,13 @@ main() {
 
 	load_vars
 
+    set_environment
+
 	if command_exists composer; then
 		pass_message "composer has installed"
+        set_mirror
 
-        if [[ -z "${1}" ]]; then
+        if [ -z "${1}" ]; then
     		show_info
 		    return
         fi
@@ -79,7 +84,9 @@ main() {
         install
     fi	
 
-    set_environment "${1}"
+    set_mirror
+    
+    show_info
 }
 
 main "$@" || exit 1
