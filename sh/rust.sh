@@ -9,7 +9,7 @@ load_vars() {
 }
 
 # set environment
-set_environment() {
+set_environment_default() {
 	if [ -z "`grep '## RUST' ${PROFILE}`" ];then
 			echo -e "\n## RUST" >> "${PROFILE}"
 	fi	
@@ -41,11 +41,14 @@ EOF
 			sedi "s@^export RUSTUP_UPDATE_ROOT.*@export RUSTUP_UPDATE_ROOT=\"${RUSTUP_DIST_SERVER}/rustup\"@" "${PROFILE}"
 		fi
     fi	
+}
 
-    if [ SHOW_INFO = "1" ]; then
-        show_info
-        SHOW_INFO="0"
-    fi
+set_environment() {
+	RUSTUP_DIST_SERVER="${RUSTUP_DIST_SERVER}"
+
+	source "$HOME/.cargo/env"
+	cargo install crm
+	crm best
 }
 
 show_info() {
@@ -84,9 +87,6 @@ main() {
 
 	[ "${1}" = "upgrade" ] && rustup self uninstall
 
-    set_environment
-    source "${PROFILE}"
-
 	if command_exists rustc; then
 		pass_message "Rust has installed"
 
@@ -96,6 +96,8 @@ main() {
         fi
 	else
         install
+
+		set_environment
     fi	
 
     show_info
