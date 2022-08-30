@@ -124,6 +124,7 @@ composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/
 ```
 
 - **Brew**
+- 中科大源: http://mirrors.ustc.edu.cn/help/brew.git.html
 ```sh
 ## BREW
 export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.ustc.edu.cn/brew.git"
