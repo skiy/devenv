@@ -37,7 +37,7 @@ set_environment() {
 		echo -e "\n## NODE" >> ${PROFILE}
 	fi
 
-	if [[ "${IN_CHINA}" == "1" ]]; then 
+	if [[ -n "${IN_CHINA}" ]]; then 
 		if [[ -z "`grep 'export\sNVM_NODEJS_ORG_MIRROR' ${PROFILE}`" ]];then
 			echo "export NVM_NODEJS_ORG_MIRROR=\"${NVM_NODEJS_ORG_MIRROR}\"" >> ${PROFILE}
 		else
@@ -50,17 +50,6 @@ set_environment() {
 			sedi "s@^export NODE_MIRROR.*@export NODE_MIRROR=\"${MIRROR_NODE}\"@" "${PROFILE}"
 		fi
 	fi
-    
-	## 使用 fnm
-	# if [[ -z "`grep 'export\sNODE_INSTALL' ${PROFILE}`" ]];then
-	#     echo "export NODE_INSTALL=\"${NODE_PATH}\"" >> ${PROFILE}
-	# else
-	#     sed -i "s@^export NODE_INSTALL.*@export NODE_INSTALL=\"${NODE_PATH}\"@" $PROFILE
-	# fi
-
-	# if [[ -z "`grep 'export\sPATH=\"\$PATH:\$NODE_INSTALL/bin\"' ${PROFILE}`" ]];then
-	#     echo "export PATH=\"\$PATH:\$NODE_INSTALL/bin\"" >> ${PROFILE}
-	# fi
 
 	if [[ SHOW_INFO = "1" ]]; then
 		show_info
@@ -73,34 +62,6 @@ latest_version() {
 	if [[ -z "${RELEASE_TAG}" ]]; then
 		RELEASE_TAG="$(curl -sL https://nodejs.org/en/ | sed -n '/home-downloadbutton/p' | head -n 1 | cut -d '"' -f 8)"
 	fi
-}
-
-install() {
-	latest_version
-
-	[[ -n "${IN_CHINA}" ]] && DOWNLOAD_URL="${MIRROR_NODE}"
-
-	BINARY_URL="${DOWNLOAD_URL}${RELEASE_TAG}/node-${RELEASE_TAG}-${OS}-${ARCH}.tar.xz"
-	DOWNLOAD_FILE="$(mktemp).tar.gz"
-	download_file $BINARY_URL $DOWNLOAD_FILE
-
-	if [[ "${PKG_TOOL_NAME}" = "apt" ]]; then  
-		if test -x "$(dpkg -l | grep tar)"; then
-			sudo apt install -y tar
-		fi
-
-		if test -x "$(dpkg -l | grep xz-utils)"; then
-			sudo apt install -y xz-utils
-		fi
-	fi
-
-	if [[ ! -d "${HOME}/.node" ]]; then
-		mkdir "${HOME}/.node"
-	fi
-
-	tar -xJf ${DOWNLOAD_FILE}
-	cp -r node-${RELEASE_TAG}-${OS}-${ARCH}/* ${HOME}/.node 
-	rm -rf node-${RELEASE_TAG}-${OS}-${ARCH} $DOWNLOAD_FILE
 }
 
 # show info
@@ -136,14 +97,12 @@ install_fnm() {
 	# cargo install fnm
 
 	TMPFILE="fnm-linux.zip"
-	if [[ "${IN_CHINA}" == "1" ]]; then
-		curl -sL -o "${TMPFILE}" "${CHINA_MIRROR_URL}https://github.com/Schniz/fnm/releases/download/v1.31.1/fnm-linux.zip"
-	else
-		curl -sL -o "${TMPFILE}" "https://github.com/Schniz/fnm/releases/download/v1.31.1/fnm-linux.zip"
-	fi
+	DL_URL="https://github.com/Schniz/fnm/releases/latest/download/${TMPFILE}"
+	[[ -n "${IN_CHINA}" ]] && DL_URL="${CHINA_MIRROR_URL}${DL_URL}"
+	curl -fsL -o "${TMPFILE}" "${DL_URL}"
 
-	unzip fnm-linux.zip
-	rm -rf fnm-linux.zip
+	unzip ${TMPFILE}
+	rm -rf ${TMPFILE}
 	chmod +x fnm
 	sudo mv fnm /usr/local/bin/
 }
@@ -152,9 +111,15 @@ main() {
 	load_include
 	load_vars
 
+	# china mirror
+	if [[ -n "${IN_CHINA}" ]]; then
+		DOWNLOAD_URL="${MIRROR_NODE}"
+	fi
+
 	set_environment
 	source "${PROFILE}"
 
+	# install fnm
 	if command_exists fnm; then
 		echo "fnm (installed) $(fnm --version)"
 	else
@@ -163,6 +128,10 @@ main() {
 		source "${PROFILE}"
 	fi
 
+	# set node mirror
+	eval "$(fnm env --use-on-cd --node-dist-mirror ${DOWNLOAD_URL})"
+
+	# install node with fnm
 	if command_exists node; then
 		pass_message "Node has installed"
 		if [[ -z "${1}" ]]; then
@@ -171,22 +140,27 @@ main() {
 		fi
 	else
 		fnm install 16
-
-		if [[ -z "`grep 'fnm env' ${PROFILE}`" ]]; then
-			tee -a ${PROFILE} <<-EOF
-			eval "\$(fnm env --use-on-cd)"
-EOF
-			source "${PROFILE}"
-		fi
 	fi
 
-	eval "$(fnm env --use-on-cd)"
+	# set node env with fnm
+	if [[ -z "`grep 'fnm env' ${PROFILE}`" ]]; then
+		if [[ -n "${IN_CHINA}" ]]; then
+			tee -a ${PROFILE} <<-EOF
+eval "\$(fnm env --use-on-cd --node-dist-mirror $MIRROR_NODE)"
+EOF
+		else
+			tee -a ${PROFILE} <<-EOF
+eval "\$(fnm env --use-on-cd)"
+EOF
+		fi
+	fi	
 
+	source "${PROFILE}"
 	# installl latest npm
-	npm install -g npm 
-	if [[ "${IN_CHINA}" == "1" ]]; then
+	if [[ -n "${IN_CHINA}" ]]; then
         	npm config set registry "${NPM_MIRROR_URL}"
 	fi
+	npm install -g npm 
 
 	show_info
 }
