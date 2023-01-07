@@ -2,17 +2,20 @@
 
 load_vars() {
 	DOTNET_ROOT="\$HOME/.dotnet"
-
 	INSTALL_URL="https://dot.net/v1"
 }
 
 show_info() {
-    source "${PROFILE}"
+  source "${PROFILE}"
 	dotnet --version
 }
 
 install() {
-	curl -sSL "${INSTALL_URL}/dotnet-install.sh" | bash /dev/stdin -c 6.0
+  VER="${1}"
+  if [[ -z "${VER}" ]]; then
+    VER="6.0"
+  fi
+	curl -sSL "${INSTALL_URL}/dotnet-install.sh" | bash /dev/stdin -c "${VER}"
 }
 
 set_environment() {
@@ -32,7 +35,7 @@ set_environment() {
 }
 
 load_include() {
-    realpath=$(dirname "`readlink -f $0`")
+  realpath=$(dirname "`readlink -f $0`")
 	include_tmp_path="/tmp/include_devenv.sh"
 	include_file_url="https://jihulab.com/jetsung/devenv/raw/main/sh/include.sh"
 	if [ -f "${realpath}/include.sh" ]; then
@@ -46,26 +49,26 @@ load_include() {
 }
 
 main() {
-	load_include
-	load_vars
+  load_include
+  load_vars
 
-    [ "${1}" = "upgrade" ] && rm -rf "${HOME}/.dotnet"
+  [ "${1}" = "upgrade" ] && rm -rf "${HOME}/.dotnet"
 
-	set_environment
-    source "${PROFILE}"
+  set_environment
+  source "${PROFILE}"
 
-	if command_exists dotnet; then
-		pass_message "dotnet has installed"
+  if command_exists dotnet; then
+    pass_message "dotnet has installed"
 
-        if [ -z "${1}" ]; then
-    		show_info
-		    return
-        fi
-	else
-        install
-    fi	
+    if [ -z "${1}" ]; then
+        show_info
+      return
+    fi
+  else
+      install "${2}"
+  fi	
 
-	show_info
+  show_info
 }
 
 main "$@" || exit 1
