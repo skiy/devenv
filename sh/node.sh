@@ -51,10 +51,7 @@ set_environment() {
 		fi
 	fi
 
-	if [[ SHOW_INFO = "1" ]]; then
-		show_info
-		SHOW_INFO="0"
-	fi
+	[[ -z "${1}" ]] || show_info
 }
 
 # if RELEASE_TAG was not provided, assume latest
@@ -66,7 +63,7 @@ latest_version() {
 
 # show info
 show_info() {
-	source "${PROFILE}"
+	source ${PROFILE}
 
 	if command_exists node; then
 		npm config list
@@ -101,10 +98,23 @@ install_fnm() {
 	[[ -n "${IN_CHINA}" ]] && DL_URL="${CHINA_MIRROR_URL}${DL_URL}"
 	curl -fsL -o "${TMPFILE}" "${DL_URL}"
 
-	unzip ${TMPFILE}
+	sudo unzip -f ${TMPFILE} -d /usr/local/bin/
+	sudo chmod +x /usr/local/bin/fnm
 	rm -rf ${TMPFILE}
-	chmod +x fnm
-	sudo mv fnm /usr/local/bin/
+}
+
+install_node() {
+	# install node with fnm
+	if command_exists node; then
+		pass_message "Node has installed"
+
+		if [[ -z "${1}" ]]; then
+			show_info
+			exit
+		fi
+	else
+		fnm install --lts
+	fi
 }
 
 main() {
@@ -117,29 +127,24 @@ main() {
 	fi
 
 	set_environment
-	source "${PROFILE}"
+	source ${PROFILE}
 
 	# install fnm
 	if command_exists fnm; then
 		echo "fnm (installed) $(fnm --version)"
 	else
 		install_fnm
-		echo "fnm (install) $(fnm --version)"
-		source "${PROFILE}"
+		echo "fnm (installing) $(fnm --version)"
+		source ${PROFILE}
 	fi
 
 	# set node mirror
 	eval "$(fnm env --use-on-cd --node-dist-mirror ${DOWNLOAD_URL})"
 
-	# install node with fnm
-	if command_exists node; then
-		pass_message "Node has installed"
-		if [[ -z "${1}" ]]; then
-			show_info
-			return
-		fi
+	if [[ "${1}" = "upgrade" ]]; then
+		fnm install --lts
 	else
-		fnm install 16
+		install_node $@
 	fi
 
 	# set node env with fnm
@@ -155,14 +160,14 @@ EOF
 		fi
 	fi	
 
-	source "${PROFILE}"
+	source ${PROFILE}
 	# installl latest npm
 	if [[ -n "${IN_CHINA}" ]]; then
         	npm config set registry "${NPM_MIRROR_URL}"
 	fi
 	npm install -g npm 
 
-	show_info
+	set_environment
 }
 
-main "$@" || exit 1
+main $@ || exit 1

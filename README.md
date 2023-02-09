@@ -9,8 +9,8 @@
 - deno
 - node
 - docker
-- python
-- composer
+- python (anaconda)
+- composer (need php)
 
 ### 使用
 ```
@@ -35,8 +35,9 @@ export PATH="$PATH:$GOROOT/bin:$GOBIN"
 export ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.18
 ```
 
-- **RUST**
+- **~~RUST~~**
 ```sh
+# (已使用 crm 作为镜像管理工具)
 ## RUST
 export RUSTUP_DIST_SERVER="https://mirrors.ustc.edu.cn/rust-static"
 export RUSTUP_UPDATE_ROOT="https://mirrors.ustc.edu.cn/rust-static/rustup"
@@ -52,7 +53,7 @@ export PATH="$PATH:$DOTNET_ROOT"
 ```
 
 - **Flutter**
-```bash
+```sh
 export FLUTTER_STORAGE_BASE_URL="https://storage.flutter-io.cn/"
 export PUB_HOSTED_URL="https://pub.flutter-io.cn"
 export PATH="$PATH:$HOME/.flutter/bin"
@@ -65,8 +66,9 @@ export DENO_INSTALL="$HOME/.deno"
 export PATH="$PATH:$DENO_INSTALL/bin"
 ```
 
-- **NODE**
+- **~~NODE~~**
 ```sh
+# (已使用 fnm 作为版本管理工具)
 ## NODE
 export NVM_NODEJS_ORG_MIRROR="https://mirrors.ustc.edu.cn/node/"
 export NODE_MIRROR="https://mirrors.ustc.edu.cn/node/"
@@ -79,6 +81,7 @@ export NODE_MIRROR="https://mirrors.ustc.edu.cn/node/"
 - **Qt**
 > QT_INSTALL_PREFIX 变量注意编译环境：`clang_64` / `gcc_64`   
 ```sh
+# (安装脚本未配置 Qt)
 ## QT
 export QT_VERSION="5.15.2"
 export QT_DIR="$HOME/Qt/$QT_VERSION"
@@ -89,7 +92,7 @@ export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$QT_INSTALL_PREFIX/lib"
 export PATH="$PATH:$QT_INSTALL_PREFIX/bin"
 ```
 需要修正使用的是 `gcc` 还是 `clang`
-```bash
+```
 # MacOS zsh
 [ -d "$QT_DIR/clang_64" ] && sed -i '' 's/^export QT_INSTALL_PREFIX.*/export QT_INSTALL_PREFIX="$QT_DIR\/clang_64"/' ~/.zshrc
 # Linux bash
@@ -97,16 +100,17 @@ export PATH="$PATH:$QT_INSTALL_PREFIX/bin"
 ```
 
 - **Docker**
-需要 **root**
-> `/etc/docker/daemon.json`
+> `/etc/docker/daemon.json` (root)   
+> `~/.config/docker.daemon.json` (rootless)
 ```
 {
-  "registry-mirrors": ["https://docker.mirrors.ustc.edu.cn/"]
+  "registry-mirrors": ["https://05f073ad3c0010ea0f4bc00b7105ec20.mirror.swr.myhuaweicloud.com","https://mirror.ccs.tencentyun.com","http://f1361db2.m.daocloud.io", "http://hub-mirror.c.163.com"]
 }
 ```
 
-- **Python**
-```bash
+- **~~Python~~**
+```sh
+# (已使用 anaconda 作为环境管理工具)
 pip config set global.index-url  http://mirrors.cloud.tencent.com/pypi/simple  --trusted-host mirrors.cloud.tencent.com
 ```
 
@@ -120,6 +124,7 @@ trusted-host = pypi.tuna.tsinghua.edu.cn
 
 - **Composer**
 ```sh
+# (需要 PHP)
 composer config -g repo.packagist composer https://mirrors.aliyun.com/composer/
 ```
 

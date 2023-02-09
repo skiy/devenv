@@ -9,7 +9,7 @@ load_vars() {
     DOWNLOAD_URL="https://dl.google.com/go/"
 
     # GOPROXY
-    GOPROXY_TEXT="https://proxy.golang.org"
+    GOPROXY_TEXT="https://proxy.golang.org,direct"
 
     # Set GOPATH PATH
     GO_PATH="\$HOME/go"
@@ -17,65 +17,60 @@ load_vars() {
 
 # set golang environment
 set_environment() {
-    ## Update params
-    if version_ge $RELEASE_TAG "go1.13"; then
-        GOPROXY_TEXT="${GOPROXY_TEXT},direct"
-    fi
-
-    if [ -z "`grep 'export\sGOROOT' ${PROFILE}`" ];then
+    if [[ -z "`grep 'export\sGOROOT' ${PROFILE}`" ]];then
         printf "\n## GOLANG\n" >> "${PROFILE}"
         echo "export GOROOT=\"\$HOME/.go\"" >> "${PROFILE}"
     else
         sedi "s@^export GOROOT.*@export GOROOT=\"\$HOME/.go\"@" "${PROFILE}"
     fi
 
-    if [ -z "`grep 'export\sGOPATH' ${PROFILE}`" ];then
+    if [[ -z "`grep 'export\sGOPATH' ${PROFILE}`" ]];then
         echo "export GOPATH=\"${GO_PATH}\"" >> "${PROFILE}"
     else
         sedi "s@^export GOPATH.*@export GOPATH=\"${GO_PATH}\"@" "${PROFILE}"
     fi
     
-    if [ -z "`grep 'export\sGOBIN' ${PROFILE}`" ];then
+    if [[ -z "`grep 'export\sGOBIN' ${PROFILE}`" ]];then
         echo "export GOBIN=\"\$GOPATH/bin\"" >> "${PROFILE}"
     else 
-        sedi "s@^export GOBIN.*@export GOBIN=\$GOPATH/bin@" "${PROFILE}"
+        sedi "s@^export GOBIN.*@export GOBIN=\"\$GOPATH/bin\"@" "${PROFILE}"
     fi   
 
-    if [ -z "`grep 'export\sGO111MODULE' ${PROFILE}`" ];then
+    if [[ -z "`grep 'export\sGO111MODULE' ${PROFILE}`" ]];then
         if version_ge "${RELEASE_TAG}" "go1.11.1"; then
             echo "export GO111MODULE=on" >> "${PROFILE}"
         fi
     fi   
     
-    if [ -z "`grep 'export\sASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH' ${PROFILE}`" ];then
+    if [[ -z "`grep 'export\sASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH' ${PROFILE}`" ]];then
         if version_ge "${RELEASE_TAG}" "go1.17"; then
             echo "export ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.18" >> "${PROFILE}"
         fi
     fi      
 
-    if [ -n "${IN_CHINA}" ]; then 
+    if [[ -n "${IN_CHINA}" ]]; then 
         if [ -z "`grep 'export\sGOSUMDB' ${PROFILE}`" ];then
             echo "export GOSUMDB=off" >> "${PROFILE}"
         fi      
     fi
 
-    if [ -z "`grep 'export\sGOPROXY' ${PROFILE}`" ];then
+    if [[ -z "`grep 'export\sGOPROXY' ${PROFILE}`" ]];then
         echo "export GOPROXY=\"${GOPROXY_TEXT}\"" >> "${PROFILE}"
     else
         sedi "s@^export GOPROXY.*@export GOPROXY=\"${GOPROXY_TEXT}\"@" "${PROFILE}"
     fi
 
-    if [ -z "`grep '\$GOROOT/bin:\$GOBIN' ${PROFILE}`" ];then
+    if [[ -z "`grep '\$GOROOT/bin:\$GOBIN' ${PROFILE}`" ]];then
         echo "export PATH=\"\$PATH:\$GOROOT/bin:\$GOBIN\"" >> "${PROFILE}"
     fi        
 
-    [ -n "${1}" ] || show_info
+    [[ -z "${1}" ]] || show_info
 }
 
 # create GOPATH folder
 create_gopath() {
-    if [ ! -d ${GO_PATH} ]; then
-        if [ "${GO_PATH}" = "\$HOME/go" ]; then
+    if [[ ! -d ${GO_PATH} ]]; then
+        if [[ "${GO_PATH}" == "\$HOME/go" ]]; then
             mkdir -p ${HOME}/go
         else
             mkdir -p "${GO_PATH}"
@@ -98,7 +93,7 @@ download_unpack() {
 }
 
 show_info() {
-    source "${PROFILE}"
+    source ${PROFILE}
 
     go version
 }
@@ -106,7 +101,7 @@ show_info() {
 install() {
     latest_version
 
-    if [ "${ARCH}" = "x64" ]; then
+    if [[ "${ARCH}" = "x64" ]]; then
         ARCH="amd64"
     fi
 
@@ -124,13 +119,13 @@ load_include() {
     realpath=$(dirname "`readlink -f $0`")
 	include_tmp_path="/tmp/include_devenv.sh"
 	include_file_url="https://jihulab.com/jetsung/devenv/raw/main/sh/include.sh"
-	if [ -f "${realpath}/include.sh" ]; then
+	if [[ -f "${realpath}/include.sh" ]]; then
     	. ${realpath}/include.sh
-	elif [ -f "${include_tmp_path}" ]; then
+	elif [[ -f "${include_tmp_path}" ]]; then
 		. "${include_tmp_path}"
 	else
 		curl -sL -o "${include_tmp_path}" "${include_file_url}"
-		[ -f "${include_tmp_path}" ] && . "${include_tmp_path}"
+		[[ -f "${include_tmp_path}" ]] && . "${include_tmp_path}"
 	fi
 }
 
@@ -138,28 +133,28 @@ main() {
 	load_include
 	load_vars
 
-    [ "${1}" = "upgrade" ] && rm -rf "${HOME}/.go"
+    [[ "${1}" = "upgrade" ]] && rm -rf "${HOME}/.go"
+
+    if [[ -n "${IN_CHINA}" ]]; then 
+        RELEASE_URL="https://golang.google.cn/dl/"
+        GOPROXY_TEXT="https://goproxy.cn,https://goproxy.io,direct"  
+    fi
 
     set_environment
-    source "${PROFILE}"
-
-    if [ -n "${IN_CHINA}" ]; then 
-        RELEASE_URL="https://golang.google.cn/dl/"
-        GOPROXY_TEXT="https://goproxy.cn,https://goproxy.io"  
-    fi
+    source ${PROFILE}
 
 	if command_exists go; then
 		pass_message "Go has installed"
 
-        if [ -z "${1}" ]; then
+        if [[ -z "${1}" ]]; then
     		show_info
-		    return
+		    exit
         fi
 	else
         install
     fi	
 
-    show_info 
+    set_environment
 }
 
-main "$@" || exit 1
+main $@ || exit 1

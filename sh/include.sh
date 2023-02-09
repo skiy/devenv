@@ -57,7 +57,7 @@ command_exists() {
 # check in china
 check_in_china() {
     urlstatus=$(curl -s -m 2 -IL https://google.com | grep 200)
-    if [ -z "${urlstatus}" ]; then
+    if [[ -z "${urlstatus}" ]]; then
         IN_CHINA=1
     fi
 }
@@ -65,9 +65,9 @@ check_in_china() {
 # install curl,wget command
 install_dl_command() {
     if ! command_exists curl; then
-        if [ "${PKG_TOOL_NAME}" = "yum" ]; then  
+        if [[ "${PKG_TOOL_NAME}" = "yum" ]]; then  
             sudo yum install -y curl wget
-        elif [ "${PKG_TOOL_NAME}" = "apt" ]; then  
+        elif [[ "${PKG_TOOL_NAME}" = "apt" ]]; then  
             sudo apt install -y curl wget
         else 
             err_message "You must pre-install the curl,wget tool"
@@ -95,7 +95,7 @@ download_file() {
         exit 1
     fi
 
-    if [ "${code}" != "200" ]; then
+    if [[ "${code}" != "200" ]]; then
         printf "\e[1;31mRequest failed with code %s\e[0m\n" $code
         exit 1
     # else 
@@ -104,7 +104,7 @@ download_file() {
 }
 
 sedi() {
-    if [ "${OS}" = "darwin" ]; then
+    if [[ "${OS}" = "darwin" ]]; then
         sed -i "" "$@"
     else 
         sed -i "$@"
@@ -112,12 +112,12 @@ sedi() {
 }
 
 detect_profile() {
-  if [ "${PROFILE-}" = '/dev/null' ]; then
+  if [[ "${PROFILE-}" = '/dev/null' ]]; then
     # the user has specifically requested NOT to have nvm touch their profile
     return
   fi
 
-  if [ -n "${PROFILE}" ] && [ -f "${PROFILE}" ]; then
+  if [[ -n "${PROFILE}" ]] && [[ -f "${PROFILE}" ]]; then
     sh_echo "${PROFILE}"
     return
   fi
@@ -125,19 +125,19 @@ detect_profile() {
   local DETECTED_PROFILE
   DETECTED_PROFILE=''
 
-  if [ "${SHELL#*bash}" != "$SHELL" ]; then
-    if [ -f "$HOME/.bashrc" ]; then
+  if [[ "${SHELL#*bash}" != "$SHELL" ]]; then
+    if [[ -f "$HOME/.bashrc" ]]; then
       DETECTED_PROFILE="$HOME/.bashrc"
-    elif [ -f "$HOME/.bash_profile" ]; then
+    elif [[ -f "$HOME/.bash_profile" ]]; then
       DETECTED_PROFILE="$HOME/.bash_profile"
     fi
-  elif [ "${SHELL#*zsh}" != "$SHELL" ]; then
-    if [ -f "$HOME/.zshrc" ]; then
+  elif [[ "${SHELL#*zsh}" != "$SHELL" ]]; then
+    if [[ -f "$HOME/.zshrc" ]]; then
       DETECTED_PROFILE="$HOME/.zshrc"
     fi
   fi
 
-  if [ -z "$DETECTED_PROFILE" ]; then
+  if [[ -z "$DETECTED_PROFILE" ]]; then
     for EACH_PROFILE in ".profile" ".bashrc" ".bash_profile" ".zshrc"
     do
       if DETECTED_PROFILE="$(try_profile "${HOME}/${EACH_PROFILE}")"; then
@@ -146,14 +146,14 @@ detect_profile() {
     done
   fi
 
-  if [ -n "$DETECTED_PROFILE" ]; then
+  if [[ -n "$DETECTED_PROFILE" ]]; then
     sh_echo "$DETECTED_PROFILE"
   fi
 }
 
 # try profile
 try_profile() {
-  if [ -z "${1-}" ] || [ ! -f "${1}" ]; then
+  if [[ -z "${1-}" ]] || [[ ! -f "${1}" ]]; then
     return 1
   fi
   sh_echo "${1}"
@@ -176,19 +176,19 @@ err_message() {
 }
 
 load() {
-    if [ -z "${OS}" ]; then  
+    if [[ -z "${OS}" ]]; then  
         get_os
     fi
 
-    if [ -z "${ARCH}" ] || [ -z "${ARCH_BIT}" ] ; then
+    if [[ -z "${ARCH}" ]] || [[ -z "${ARCH_BIT}" ]]; then
         get_arch
     fi
 
-    if [ -z "${PKG_TOOL_NAME}" ]; then  
+    if [[ -z "${PKG_TOOL_NAME}" ]]; then  
         pkg_manager_tool
     fi
 
-    if [ -z "${IN_CHINA}" ]; then
+    if [[ -z "${IN_CHINA}" ]]; then
         check_in_china
     fi
 

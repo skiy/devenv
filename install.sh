@@ -32,10 +32,10 @@ load_vars() {
 
 ## golang
 install_golang() {
-	if [ -e "${golang_path}" ]; then
+	if [[ -e "${golang_path}" ]]; then
 		echo -e "\n\nInstalling Go"
-		bash ${golang_path} up
-		source "${HOME}/.bashrc"
+		${SHELL} ${golang_path} up
+		source ${PROFILE}
 		go version
 	fi
 }
@@ -44,8 +44,8 @@ install_golang() {
 install_nodejs() {
 	if [ -e "${node_path}" ]; then
 		echo -e "\n\nInstalling Node"
-		bash ${node_path} up
-		source "${HOME}/.bashrc"
+		${SHELL} ${node_path} up
+		source ${PROFILE}
 	    npm config list
 #     	printf "
 # npm version: %s
@@ -56,49 +56,49 @@ install_nodejs() {
 
 ## deno
 install_deno() {
-	if [ -e "${deno_path}" ]; then
+	if [[ -e "${deno_path}" ]]; then
 		echo -e "\n\nInstalling deno"
-		bash ${deno_path} up
-		source "${HOME}/.bashrc"
+		${SHELL} ${deno_path} up
+		source ${PROFILE}
 		deno --version
 	fi
 }
 
 ## flutter
 install_flutter() {
-	if [ -e "${flutter_path}" ]; then
+	if [[ -e "${flutter_path}" ]]; then
 		echo -e "\n\nInstalling Flutter"
-		bash ${flutter_path} up
-		source "${HOME}/.bashrc"
+		${SHELL} ${flutter_path} up
+		source ${PROFILE}
 		flutter --version
 	fi
 }
 
 ## dotnet
 install_dotnet() {
-	if [ -e "${dotnet_path}" ]; then
+	if [[ -e "${dotnet_path}" ]]; then
 		echo -e "\n\nInstalling dotnet"
-		bash ${dotnet_path} up
-		source "${HOME}/.bashrc"
-		dotnet --version
+		${SHELL} ${dotnet_path} up
+		source ${PROFILE}
+		printf "dotnet: %s\n" $(dotnet --version)
 	fi
 }
 
 ## python
 install_python() {
-	if [ -e "${python_path}" ]; then
-		echo -e "\n\nInstalling Python"
-		bash ${python_path} up
-		source "${HOME}/.bashrc"
-		python3 --version
+	if [[ -e "${python_path}" ]]; then
+		echo -e "\n\nInstalling Anaconda(Python)"
+		${SHELL} ${python_path} up
+		source ${PROFILE}
+		python --version
 	fi	
 }
 
 ## composer
 install_composer() {
-	if [ -e "${composer_path}" ]; then
+	if [[ -e "${composer_path}" ]]; then
 		echo -e "\n\nInstalling Composer"
-		bash ${composer_path} up
+		${SHELL} ${composer_path} up
 
 		if ! command_exists composer; then
 			err_message "Composer is not installed"
@@ -108,21 +108,22 @@ install_composer() {
 
 ## docker
 install_docker() {
-	if [ -e "${docker_path}" ]; then
+	if [[ -e "${docker_path}" ]]; then
 		echo -e "\n\nInstalling Docker"
-		bash ${docker_path} up
-		source "${HOME}/.bashrc"
-		docker --version
+		${SHELL} ${docker_path} up
+		source ${PROFILE}
+		docker info
 	fi
 }
 
 ## rust
 install_rust() {
-	if [ -e "${rust_path}" ]; then
+	if [[ -e "${rust_path}" ]]; then
 		echo -e "\n\nInstalling Rust"
-		bash ${rust_path} up
-		source "${HOME}/.bashrc"
+		${SHELL} ${rust_path} up
+		source ${HOME}/.cargo/env
 		rustc --version
+		rustup --version
 	fi
 }
 
@@ -131,7 +132,7 @@ main() {
 
 	load_vars
 
-    if [ "${IN_CHINA}" == "1" ]; then
+    if [[ -n "${IN_CHINA}" ]]; then
 		PROJECT_URL="${JIHULAB_URL}"
 	fi
 
@@ -147,19 +148,19 @@ main() {
 \n" "${PROJECT_URL}" "${AUTHOR}"
 
 	## custom
-	install_golang
-	install_nodejs
-	install_deno
-	install_flutter
-	install_dotnet
+	# install_golang
+	# install_nodejs
+	# install_deno
+	# install_flutter
+	# install_dotnet
 
-	## need root
-	install_composer
-	install_docker
+	# ## need root
+	# install_composer
+	# install_docker
 
-	## need enter any key
-	install_python
+	# ## need enter any key
+	# install_python
 	install_rust
 }
 
-main "$@" || exit 1
+main $@ || exit 1

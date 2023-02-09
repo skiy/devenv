@@ -7,28 +7,30 @@ load_vars() {
 }
 
 set_environment() {
-    if [ -z "`grep '## DENO' ${PROFILE}`" ];then
+    if [[ -z "`grep '## DENO' ${PROFILE}`" ]]; then
         echo -e "\n## DENO" >> "${PROFILE}"
     fi
 
-    if [ -z "`grep 'export\sDENO_INSTALL' ${PROFILE}`" ];then
+    if [[ -z "`grep 'export\sDENO_INSTALL' ${PROFILE}`" ]]; then
         echo "export DENO_INSTALL=\"${DENO_PATH}\"" >> "${PROFILE}"
     else
-        sedi "s@^export DENO_INSTALL.*@export DENO_INSTALL=\"${DENO_PATH}\"@" $PROFILE
+        sedi "s@^export DENO_INSTALL.*@export DENO_INSTALL=\"${DENO_PATH}\"@" "${PROFILE}"
     fi
 
-    if [ -z "`grep 'export\sPATH=\"\$PATH:\$DENO_INSTALL/bin\"' ${PROFILE}`" ];then
+    if [[ -z "`grep 'export\sPATH=\"\$PATH:\$DENO_INSTALL/bin\"' ${PROFILE}`" ]]; then
         echo "export PATH=\"\$PATH:\$DENO_INSTALL/bin\"" >> "${PROFILE}"
     fi
+
+    [[ -z "${1}" ]] || show_info
 }
 
 show_info() {
-    source "${PROFILE}"
+    source ${PROFILE}
     deno --version
 }
 
 install() {
-    if [ -n "${IN_CHINA}" ]; then
+    if [[ -n "${IN_CHINA}" ]];  then
         trap 'rm -f "${TMPFILE}"' EXIT
         # echo "Save file to ${TMPFILE}"
 
@@ -46,13 +48,13 @@ load_include() {
     realpath=$(dirname "`readlink -f $0`")
 	include_tmp_path="/tmp/include_devenv.sh"
 	include_file_url="https://jihulab.com/jetsung/devenv/raw/main/sh/include.sh"
-	if [ -f "${realpath}/include.sh" ]; then
+	if [[ -f "${realpath}/include.sh" ]];  then
     	. ${realpath}/include.sh
-	elif [ -f "${include_tmp_path}" ]; then
+	elif [[ -f "${include_tmp_path}" ]];  then
 		. "${include_tmp_path}"
 	else
 		curl -sL -o "${include_tmp_path}" "${include_file_url}"
-		[ -f "${include_tmp_path}" ] && . "${include_tmp_path}"
+		[[ -f "${include_tmp_path}" ]] && . "${include_tmp_path}"
 	fi
 }
 
@@ -63,20 +65,20 @@ main() {
     [ "${1}" = "upgrade" ] && rm -rf "${HOME}/.deno"
 
     set_environment
-    source "${PROFILE}"
+    source ${PROFILE}
 
 	if command_exists deno; then
 		pass_message "deno has installed"
 
-        if [ -z "${1}" ]; then
+        if [[ -z "${1}" ]];  then
     		show_info
-		    return
+		    exit
         fi
 	else
         install
     fi	
 
-    show_info
+    set_environment
 }
 
-main "$@" || exit 1
+main $@ || exit 1

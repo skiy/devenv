@@ -7,52 +7,32 @@ load_vars() {
 }
 
 set_environment() {
-    if [ "${PKG_TOOL_NAME}" = "apt" ]; then  
-        if test -x "$(dpkg -l | grep python3-distutils)"; then
-            sudo apt install -y python3-distutils
-        fi
-    fi
-
-    if ! command_exists pip3; then
-        curl -fSL https://bootstrap.pypa.io/get-pip.py | sudo python3
-    fi
-
-    if command_exists pip3; then
+    if command_exists pip; then
         if [ -n "${IN_CHINA}" ]; then
-            # pip3 install pip -U
-            pip3 install -i "https://${MIRROR_PYTHON}/simple" pip -U  
-            pip3 config set global.index-url "https://${MIRROR_PYTHON}/simple" --trusted-host ${MIRROR_PYTHON}
+            # pip install pip -U
+            pip install -i "https://${MIRROR_PYTHON}/simple" pip -U  
+            pip config set global.index-url "https://${MIRROR_PYTHON}/simple" --trusted-host ${MIRROR_PYTHON}
         fi    
     fi
+
+    [[ -z "${1}" ]] || show_info
 }
+
 
 show_info() {
-    source "${PROFILE}"
-
+    source ${PROFILE}
 	python3 --version
-}
-
-install() {
-    if ! command_exists python3; then
-        if [ "${PKG_TOOL_NAME}" = "yum" ]; then  
-            sudo yum install -y python3
-        elif [ "${PKG_TOOL_NAME}" = "apt" ]; then  
-            sudo apt install -y python3
-        elif [ "${PKG_TOOL_NAME}" = "brew" ]; then  
-            brew install python3            
-        else 
-            err_message "What's pkg manager tool?"
-            exit 1
-        fi	
-    fi
 }
 
 install_conda() {
     # http://mirrors.aliyun.com/anaconda
     # https://mirrors.bfsu.edu.cn/anaconda
     # https://mirrors.tuna.tsinghua.edu.cn/anaconda
+
+    echo "Anaconda installing"
+
     local RepoURL
-    [ "${IN_CHINA}" == "1" ] && RepoURL="https://mirrors.bfsu.edu.cn/anaconda"
+    [[ -n "${IN_CHINA}" ]] && RepoURL="https://mirrors.bfsu.edu.cn/anaconda"
 
     if command_exists conda; then
         conda_channel_mirror "${RepoURL}"
@@ -61,23 +41,27 @@ install_conda() {
 
     local Arch="x86_64"
     local ArchOS="Linux"
-    local Version="2022.05"
+    local Version="2022.10"
     local RepoURL="https://repo.anaconda.com"
 
-    [ "${OS}" = "darwin" ] && ArchOS="MacOSX"
-    [ "${ARCH}" = "arm64" ] && Arch="arm64"
+    [[ "${OS}" == "darwin" ]] && ArchOS="MacOSX"
+    [[ "${ARCH}" == "arm64" ]] && Arch="arm64"
 
     local AnacondaURL="${RepoURL}/archive/Anaconda3-${Version}-${ArchOS}-${Arch}.sh"
     local TMPFILE="/tmp/anaconda.sh"
 
-    if [ ! -f "${TMPFILE}" ]; then
-        #   echo "Save file to ${TMPFILE}"
-        curl -sL -o "${TMPFILE}" "${AnacondaURL}"
+    if [[ ! -f "${TMPFILE}" ]]; then
+        # echo "Save file to ${TMPFILE}"
+        curl -fL "${AnacondaURL}" -o "${TMPFILE}"
     fi
 
-    bash ${TMPFILE} 
+    ${SHELL} ${TMPFILE} 
 
-    [ -f "${HOME}/.bash_profile" ] && source "${HOME}/.bash_profile"
+    source ${PROFILE}
+    if ! command_exists conda; then
+        echo "not found conda"
+        return
+    fi
     conda_channel_mirror "${RepoURL}"
 }
 
@@ -106,19 +90,21 @@ conda_channel_mirror() {
 
     conda clean -i    
     conda config --show-sources
+
+    show_info
 }
 
 load_include() {
     realpath=$(dirname "`readlink -f $0`")
 	include_tmp_path="/tmp/include_devenv.sh"
 	include_file_url="https://jihulab.com/jetsung/devenv/raw/main/sh/include.sh"
-	if [ -f "${realpath}/include.sh" ]; then
+	if [[ -f "${realpath}/include.sh" ]]; then
     	. ${realpath}/include.sh
-	elif [ -f "${include_tmp_path}" ]; then
+	elif [[ -f "${include_tmp_path}" ]]; then
 		. "${include_tmp_path}"
 	else
 		curl -sL -o "${include_tmp_path}" "${include_file_url}"
-		[ -f "${include_tmp_path}" ] && . "${include_tmp_path}"
+		[[ -f "${include_tmp_path}" ]] && . "${include_tmp_path}"
 	fi
 }
 
@@ -126,24 +112,11 @@ main() {
 	load_include
 	load_vars
 
-    set_environment
-
-	if command_exists python3; then
-		pass_message "Python has installed"
-
-        install_conda
-
-        if [ -z "${1}" ]; then
-    		show_info
-		    return
-        fi
-	else
-        install
-    fi
+	set_environment
+	source ${PROFILE}
 
     install_conda
-
-    show_info
+    set_environment
 }
 
-main "$@" || exit 1
+main $@ || exit 1
