@@ -366,11 +366,10 @@ fi
 
 if [ -n "$__UPGRADE" ]; then
   volta install node@lts
-else
-  install_node
 fi
 
 source_volta
+install_node
 
 # installl latest npm
 if [ -n "$IN_CHINA" ]; then
