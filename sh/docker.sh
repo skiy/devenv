@@ -316,10 +316,10 @@ if [[ "$OS_TYPE" != "linux" ]]; then
     say_err "Only support linux. \nYour OS: $OS_TYPE"
 fi
 
-set_environment
-
 if command_exists docker; then
     say "Docker has installed"
 else
     install
 fi
+
+set_environment
