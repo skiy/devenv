@@ -296,5 +296,6 @@ if command_exists rustc; then
 		exit
 	fi
 else
-	install && set_environment
+	RUSTUP_UPDATE_ROOT="$RUSTUP_UPDATE_ROOT/rustup"
+	install
 fi
