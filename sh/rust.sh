@@ -254,7 +254,7 @@ version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "${1}
 # SH_END
 
 set_environment() {
-	RUSTUP_UPDATE_ROOT="$RUSTUP_DIST_SERVER/rustup"
+	export RUSTUP_UPDATE_ROOT="$RUSTUP_DIST_SERVER/rustup"
 
 	# shellcheck source=/dev/null
 	. "$HOME"/.cargo/env

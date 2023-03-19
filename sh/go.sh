@@ -99,7 +99,7 @@ detect_profile() {
 
 # fix macos
 sedi() {
-  if [[ "$OS_TYPE" = "darwin" ]]; then
+  if [[ "${OS_TYPE:-unknown}" = "darwin" ]]; then
     sed -i "" "$@"
   else
     sed -i "$@"
@@ -254,104 +254,104 @@ version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "${1}
 # SH_END
 
 set_environment() {
-    if ! grep -q 'export\sGOROOT' "$PROFILE"; then
-        printf "\n## GOLANG\n" >>"$PROFILE"
-        echo "export GOROOT=\"$__GOROOT\"" >>"$PROFILE"
-    else
-        sedi "s@^export GOROOT.*@export GOROOT=\"$__GOROOT\"@" "$PROFILE"
-    fi
+  if ! grep -q 'export\sGOROOT' "$PROFILE"; then
+    printf "\n## GOLANG\n" >>"$PROFILE"
+    echo "export GOROOT=\"$__GOROOT\"" >>"$PROFILE"
+  else
+    sedi "s@^export GOROOT.*@export GOROOT=\"$__GOROOT\"@" "$PROFILE"
+  fi
 
-    if ! grep -q 'export\sGOPATH' "$PROFILE"; then
-        echo "export GOPATH=\"$__GOPATH\"" >>"${PROFILE}"
-    else
-        sedi "s@^export GOPATH.*@export GOPATH=\"$__GOPATH\"@" "$PROFILE"
-    fi
+  if ! grep -q 'export\sGOPATH' "$PROFILE"; then
+    echo "export GOPATH=\"$__GOPATH\"" >>"${PROFILE}"
+  else
+    sedi "s@^export GOPATH.*@export GOPATH=\"$__GOPATH\"@" "$PROFILE"
+  fi
 
-    if ! grep -q 'export\sGOBIN' "$PROFILE"; then
-        echo "export GOBIN=\"\$GOPATH/bin\"" >>"$PROFILE"
-    else
-        sedi "s@^export GOBIN.*@export GOBIN=\$GOPATH/bin@" "$PROFILE"
-    fi
+  if ! grep -q 'export\sGOBIN' "$PROFILE"; then
+    echo "export GOBIN=\"\$GOPATH/bin\"" >>"$PROFILE"
+  else
+    sedi "s@^export GOBIN.*@export GOBIN=\$GOPATH/bin@" "$PROFILE"
+  fi
 
-    if ! grep -q 'export\sGO111MODULE' "$PROFILE"; then
-        echo "export GO111MODULE=on" >>"$PROFILE"
-    fi
+  if ! grep -q 'export\sGO111MODULE' "$PROFILE"; then
+    echo "export GO111MODULE=on" >>"$PROFILE"
+  fi
 
-    if ! grep -q 'export\sASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH' "$PROFILE"; then
-        if version_ge "$RELEASE_TAG" "go1.17"; then
-            echo "export ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.18" >>"$PROFILE"
-        fi
+  if ! grep -q 'export\sASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH' "$PROFILE"; then
+    if version_ge "$RELEASE_TAG" "go1.17"; then
+      echo "export ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.18" >>"$PROFILE"
     fi
+  fi
 
-    if ! grep -q 'export\sGOPROXY' "$PROFILE"; then
-        echo "export GOPROXY=\"$__GOPROXY_URL,direct\"" >>"$PROFILE"
-    else
-        sedi "s@^export GOPROXY.*@export GOPROXY=\"$__GOPROXY_URL,direct\"@" "$PROFILE"
-    fi
+  if ! grep -q 'export\sGOPROXY' "$PROFILE"; then
+    echo "export GOPROXY=\"$__GOPROXY_URL,direct\"" >>"$PROFILE"
+  else
+    sedi "s@^export GOPROXY.*@export GOPROXY=\"$__GOPROXY_URL,direct\"@" "$PROFILE"
+  fi
 
-    if ! grep -q "\$GOROOT/bin:\$GOBIN" "$PROFILE"; then
-        echo "export PATH=\"\$PATH:\$GOROOT/bin:\$GOBIN\"" >>"$PROFILE"
-    fi
+  if ! grep -q "\$GOROOT/bin:\$GOBIN" "$PROFILE"; then
+    echo "export PATH=\"\$PATH:\$GOROOT/bin:\$GOBIN\"" >>"$PROFILE"
+  fi
 }
 
 # custom version
 custom_version() {
-    if [ -n "${1}" ]; then
-        RELEASE_TAG="go${1}"
-    fi
+  if [ -n "${1}" ]; then
+    RELEASE_TAG="go${1}"
+  fi
 }
 
 # if RELEASE_TAG was not provided, assume latest
 latest_version() {
-    if [ -z "$RELEASE_TAG" ]; then
-        RELEASE_TAG="$(curl -sL --retry 5 --max-time 30 "${RELEASE_URL}" | sed -n '/toggleVisible/p' | head -n 1 | cut -d '"' -f 4)"
-    fi
+  if [ -z "$RELEASE_TAG" ]; then
+    RELEASE_TAG="$(curl -sL --retry 5 --max-time 30 "${RELEASE_URL}" | sed -n '/toggleVisible/p' | head -n 1 | cut -d '"' -f 4)"
+  fi
 }
 
 # compare version
 compare_version() {
-    OLD_VERSION="none"
-    NEW_VERSION="$RELEASE_TAG"
+  OLD_VERSION="none"
+  NEW_VERSION="$RELEASE_TAG"
 
-    if [ -f "$GOROOT_PATH/bin/go" ]; then
-        OLD_VERSION=$("$GOROOT_PATH"/bin/go version | awk '{print $3}')
-    fi
+  if [ -f "$GOROOT_PATH/bin/go" ]; then
+    OLD_VERSION=$("$GOROOT_PATH"/bin/go version | awk '{print $3}')
+  fi
 
-    # DELETE current go
-    # if [[ "$OLD_VERSION"="none" ]]; then
-    #     __CURRENT_GO=$(which go)
-    # fi
+  # DELETE current go
+  # if [[ "$OLD_VERSION"="none" ]]; then
+  #     __CURRENT_GO=$(which go)
+  # fi
 
-    if [ "$OLD_VERSION" = "$NEW_VERSION" ]; then
-        say_err "You have installed this version: $OLD_VERSION"
-    fi
+  if [ "$OLD_VERSION" = "$NEW_VERSION" ]; then
+    say_err "You have installed this version: $OLD_VERSION"
+  fi
 
-    printf "
+  printf "
 Current version: \e[1;33m %s \e[0m 
 Target  version: \e[1;33m %s \e[0m
 " "$OLD_VERSION" "$NEW_VERSION"
 }
 
 show_info() {
-    "$GOROOT_PATH"/bin/go version
+  "$GOROOT_PATH"/bin/go version
 }
 
 install() {
-    get_arch
+  get_arch
 
-    get_os
+  get_os
 
-    install_curl_command
+  install_curl_command
 
-    latest_version
+  latest_version
 
-    compare_version
+  compare_version
 
-    # Download File
-    BINARY_URL="${DOWNLOAD_URL}${RELEASE_TAG}.${OS}-${ARCH}.tar.gz"
+  # Download File
+  BINARY_URL="${DOWNLOAD_URL}${RELEASE_TAG}.${OS}-${ARCH}.tar.gz"
 
-    # Download and unpack
-    download_unpack "$BINARY_URL" "$GOROOT_PATH"
+  # Download and unpack
+  download_unpack "$BINARY_URL" "$GOROOT_PATH"
 }
 
 __UPGRADE=""
@@ -380,25 +380,25 @@ PROFILE=""
 PROFILE="$(detect_profile)"
 
 for ARG in "$@"; do
-    case "$ARG" in
-    --path | -p)
-        shift
-        if [ $# -ge 1 ] && [[ "${1}" != -* ]]; then
-            __GOPATH=${1/"$HOME"/\$HOME}
-        fi
-        ;;
+  case "$ARG" in
+  --path | -p)
+    shift
+    if [ $# -ge 1 ] && [[ "${1}" != -* ]]; then
+      __GOPATH=${1/"$HOME"/\$HOME}
+    fi
+    ;;
 
-    --root | -r)
-        shift
-        if [ $# -ge 1 ] && [[ "${1}" != -* ]]; then
-            __GOROOT=${1/"$HOME"/\$HOME}
-        fi
-        ;;
+  --root | -r)
+    shift
+    if [ $# -ge 1 ] && [[ "${1}" != -* ]]; then
+      __GOROOT=${1/"$HOME"/\$HOME}
+    fi
+    ;;
 
-    *)
-        shift
-        ;;
-    esac
+  *)
+    shift
+    ;;
+  esac
 done
 
 create_folder "$__GOPATH"
@@ -410,19 +410,19 @@ GOROOT_PATH="$__TMP_PATH"
 IN_CHINA=""
 check_in_china
 if [ -n "$IN_CHINA" ]; then
-    RELEASE_URL="$RELEASE_CN_URL"
-    __GOPROXY_URL="$__GOPROXY_CN_URL"
+  RELEASE_URL="$RELEASE_CN_URL"
+  __GOPROXY_URL="$__GOPROXY_CN_URL"
 fi
 
 set_environment
 
 if command_exists go; then
-    say "Go has installed"
+  say "Go has installed"
 
-    if [ -z "$__UPGRADE" ]; then
-        show_info
-        exit
-    fi
+  if [ -z "$__UPGRADE" ]; then
+    show_info
+    exit
+  fi
 else
-    install
+  install
 fi

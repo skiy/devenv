@@ -93,7 +93,7 @@ detect_profile() {
 
 # fix macos
 sedi() {
-  if [[ "$OS_TYPE" = "darwin" ]]; then
+  if [[ "${OS_TYPE:-unknown}" = "darwin" ]]; then
     sed -i "" "$@"
   else
     sed -i "$@"

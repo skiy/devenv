@@ -190,9 +190,6 @@ install_dl_command() {
   fi
 }
 
-# compare version size
-version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "${1}"; }
-
 # download file
 download_file() {
   url="${1}"
@@ -216,6 +213,42 @@ download_file() {
     #     printf "\n\e[1;33mDownload succeeded\e[0m\n"
   fi
 }
+
+# install curl command
+install_curl_command() {
+  if ! test -x "$(command -v curl)"; then
+    if test -x "$(command -v yum)"; then
+      yum install -y curl
+    elif test -x "$(command -v apt)"; then
+      apt install -y curl
+    else
+      say_err "You must pre-install the curl tool\n"
+    fi
+  fi
+}
+
+# create folder
+create_folder() {
+  if [ -n "${1}" ]; then
+    local MYPATH="${1}"
+    local REAL_PATH=${MYPATH/\$HOME/$HOME}
+    [ -d "$REAL_PATH" ] || mkdir "$REAL_PATH"
+    __TMP_PATH="$REAL_PATH"
+  fi
+}
+
+# Download file and unpack
+download_unpack() {
+  local downurl="$1"
+  local savepath="$2"
+
+  printf "Fetching %s \n\n" "$downurl"
+
+  curl -Lk --connect-timeout 30 --retry 5 --retry-max-time 360 --max-time 300 "$downurl" | gunzip | tar xf - --strip-components=1 -C "$savepath"
+}
+
+# compare version size
+version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "${1}"; }
 
 ## include.sh END
 # SH_END
