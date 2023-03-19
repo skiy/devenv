@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+## include.sh START
+# shellcheck disable=SC2034
+
 set -e
 set -u
 set -o pipefail
@@ -37,6 +40,11 @@ say() {
   printf "%b\n" "${cyan:-}${script_name}:${normal:-} $1" >&3
 }
 
+# sh echo
+sh_echo() {
+  command printf %s\\n "$*" 2>/dev/null
+}
+
 # try profile
 try_profile() {
   if [ -z "${1-}" ] || [ ! -f "${1}" ]; then
@@ -45,14 +53,9 @@ try_profile() {
   sh_echo "${1}"
 }
 
-# sh echo
-sh_echo() {
-  command printf %s\\n "$*" 2>/dev/null
-}
-
 # Get PROFILE
 detect_profile() {
-  if [ "${PROFILE-}" = '/dev/null' ]; then
+  if [[ "${PROFILE-}" = '/dev/null' ]]; then
     # the user has specifically requested NOT to have nvm touch their profile
     return
   fi
@@ -62,9 +65,7 @@ detect_profile() {
     return
   fi
 
-  local DETECTED_PROFILE
   DETECTED_PROFILE=''
-
   if [ "${SHELL#*bash}" != "$SHELL" ]; then
     if [ -f "$HOME/.bashrc" ]; then
       DETECTED_PROFILE="$HOME/.bashrc"
@@ -92,7 +93,7 @@ detect_profile() {
 
 # fix macos
 sedi() {
-  if [[ "${OS}" = "darwin" ]]; then
+  if [[ "$OS_TYPE" = "darwin" ]]; then
     sed -i "" "$@"
   else
     sed -i "$@"
@@ -101,13 +102,13 @@ sedi() {
 
 # get OS
 get_os() {
-  OS=$(uname | tr '[:upper:]' '[:lower:]')
-  case $OS in
-  darwin) OS='darwin' ;;
-  linux) OS='linux' ;;
-  freebsd) OS='freebsd' ;;
-    #        mingw*) OS='windows';;
-    #        msys*) OS='windows';;
+  OS_TYPE=$(uname | tr '[:upper:]' '[:lower:]')
+  case $OS_TYPE in
+  darwin) OS_TYPE='darwin' ;;
+  linux) OS_TYPE='linux' ;;
+  freebsd) OS_TYPE='freebsd' ;;
+    #        mingw*) OS_TYPE='windows';;
+    #        msys*) OS_TYPE='windows';;
   *)
     printf "\e[1;31mOS %s is not supported by this installation script\e[0m\n" "${OS}"
     exit 1
@@ -117,18 +118,19 @@ get_os() {
 
 # get Arch
 get_arch() {
-  ARCH=$(uname -m)
-  ARCH_BIT="${ARCH}"
-  case "${ARCH}" in
-  i386) ARCH="386" ;;
-  amd64) ARCH="x64" ;;
-  x86_64) ARCH="x64" ;;
-  armv6l) ARCH="armv6l" ;;
-  armv7l) ARCH="armv7l" ;;
-  arm64) ARCH="arm64" ;;
-  aarch64) ARCH="arm64" ;;
+  ARCH_TYPE=$(uname -m)
+  ARCH_BIT="$ARCH_TYPE"
+
+  case "$ARCH_TYPE" in
+  i386) ARCH_TYPE="386" ;;
+  amd64) ARCH_TYPE="x64" ;;
+  x86_64) ARCH_TYPE="x64" ;;
+  armv6l) ARCH_TYPE="armv6l" ;;
+  armv7l) ARCH_TYPE="armv7l" ;;
+  arm64) ARCH_TYPE="arm64" ;;
+  aarch64) ARCH_TYPE="arm64" ;;
   *)
-    printf "\e[1;31mArchitecture %s is not supported by this installation script\e[0m\n" "${ARCH}"
+    printf "\e[1;31mArchitecture %s is not supported by this installation script\e[0m\n" "$ARCH_TYPE"
     exit 1
     ;;
   esac
@@ -136,7 +138,7 @@ get_arch() {
 
 # get github latest
 get_latest_github() {
-  curl -sL "https://api.github.com/repos/${1}/releases/latest" | grep '"tag_name":' | cut -d'"' -f4
+  curl -sL --connect-timeout 15 "https://api.github.com/repos/${1}/releases/latest" | grep '"tag_name":' | cut -d'"' -f4
 }
 
 # pkg manager tool
@@ -161,6 +163,7 @@ command_exists() {
 
 # check in china
 check_in_china() {
+  IN_CHINA=""
   if ! curl -s -m 3 -IL https://google.com | grep -q "200 OK"; then
     IN_CHINA=1
   fi
@@ -168,20 +171,18 @@ check_in_china() {
 
 # install curl,wget command
 install_dl_command() {
+  pkg_manager_tool
+
   if ! command_exists curl; then
-    if [[ "${PKG_TOOL_NAME}" = "yum" ]]; then
+    if [[ "$PKG_TOOL_NAME" = "yum" ]]; then
       sudo yum install -y curl wget
-    elif [[ "${PKG_TOOL_NAME}" = "apt" ]]; then
+    elif [[ "$PKG_TOOL_NAME" = "apt" ]]; then
       sudo apt install -y curl wget
     else
-      err_message "You must pre-install the curl,wget tool"
-      exit 1
+      say_err "You must pre-install the curl,wget tool"
     fi
   fi
 }
-
-# compare version size
-version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "${1}"; }
 
 # download file
 download_file() {
@@ -199,7 +200,7 @@ download_file() {
     exit 1
   fi
 
-  if [[ "${code}" != "200" ]]; then
+  if [[ "$code" != "200" ]]; then
     printf "\e[1;31mRequest failed with code %s\e[0m\n" "$code"
     exit 1
     # else
@@ -207,92 +208,40 @@ download_file() {
   fi
 }
 
-sedi() {
-  if [[ "${OS}" = "darwin" ]]; then
-    sed -i "" "$@"
-  else
-    sed -i "$@"
-  fi
-}
-
-detect_profile() {
-  if [[ "${PROFILE-}" = '/dev/null' ]]; then
-    # the user has specifically requested NOT to have nvm touch their profile
-    return
-  fi
-
-  if [[ -n "${PROFILE}" ]] && [[ -f "${PROFILE}" ]]; then
-    sh_echo "${PROFILE}"
-    return
-  fi
-
-  local DETECTED_PROFILE
-  DETECTED_PROFILE=''
-
-  if [[ "${SHELL#*bash}" != "$SHELL" ]]; then
-    if [[ -f "$HOME/.bashrc" ]]; then
-      DETECTED_PROFILE="$HOME/.bashrc"
-    elif [[ -f "$HOME/.bash_profile" ]]; then
-      DETECTED_PROFILE="$HOME/.bash_profile"
-    fi
-  elif [[ "${SHELL#*zsh}" != "$SHELL" ]]; then
-    if [[ -f "$HOME/.zshrc" ]]; then
-      DETECTED_PROFILE="$HOME/.zshrc"
+# install curl command
+install_curl_command() {
+  if ! test -x "$(command -v curl)"; then
+    if test -x "$(command -v yum)"; then
+      yum install -y curl
+    elif test -x "$(command -v apt)"; then
+      apt install -y curl
+    else
+      say_err "You must pre-install the curl tool\n"
     fi
   fi
+}
 
-  if [[ -z "$DETECTED_PROFILE" ]]; then
-    for EACH_PROFILE in ".profile" ".bashrc" ".bash_profile" ".zshrc"; do
-      if DETECTED_PROFILE="$(try_profile "${HOME}/${EACH_PROFILE}")"; then
-        break
-      fi
-    done
-  fi
-
-  if [[ -n "$DETECTED_PROFILE" ]]; then
-    sh_echo "$DETECTED_PROFILE"
+# create folder
+create_folder() {
+  if [ -n "${1}" ]; then
+    local MYPATH="${1}"
+    local REAL_PATH=${MYPATH/\$HOME/$HOME}
+    [ -d "$REAL_PATH" ] || mkdir "$REAL_PATH"
+    __TMP_PATH="$REAL_PATH"
   fi
 }
 
-# try profile
-try_profile() {
-  if [[ -z "${1-}" ]] || [[ ! -f "${1}" ]]; then
-    return 1
-  fi
-  sh_echo "${1}"
+# Download file and unpack
+download_unpack() {
+  local downurl="$1"
+  local savepath="$2"
+
+  printf "Fetching %s \n\n" "$downurl"
+
+  curl -Lk --connect-timeout 30 --retry 5 --retry-max-time 360 --max-time 300 "$downurl" | gunzip | tar xf - --strip-components=1 -C "$savepath"
 }
 
-# sh echo
-sh_echo() {
-  command printf %s\\n "$*" 2>/dev/null
-}
+# compare version size
+version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "${1}"; }
 
-OS=""
-ARCH=""
-ARCH_BIT=""
-PKG_TOOL_NAME=""
-IN_CHINA=""
-PROFILE=""
-
-if [ -z "$OS" ]; then
-  get_os
-fi
-
-if [ -z "$ARCH" ] || [ -z "$ARCH_BIT" ]; then
-  get_arch
-fi
-
-if [ -z "$PKG_TOOL_NAME" ]; then
-  pkg_manager_tool
-fi
-
-if [ -z "${IN_CHINA}" ]; then
-  check_in_china
-fi
-
-install_dl_command
-
-PROFILE="$(detect_profile)"
-
-# shellcheck disable=SC2034
-CHINA_MIRROR_URL="https://ghproxy.com/"
+## include.sh END
