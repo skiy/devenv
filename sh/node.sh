@@ -306,7 +306,18 @@ source_env() {
 
 # install volta
 install_volta() {
-  curl https://get.volta.sh | bash
+  if [ -n "$IN_CHINA" ]; then
+    TMPFILE=$(mktemp) || exit 1
+    CHINA_MIRROR_URL="https://ghproxy.com/"
+
+    curl -fsL -o "$TMPFILE" --connect-timeout 15 "$VOLTA_URL"
+    sedi "s@\"https://github.com@\"${CHINA_MIRROR_URL}https://github.com@" "$TMPFILE"
+
+    bash "$TMPFILE"
+    rm -rf "$TMPFILE"
+  else
+    curl "$VOLTA_URL" | bash
+  fi
   source_volta
 }
 
@@ -335,8 +346,9 @@ MIRROR_SERVER="https://mirrors.ustc.edu.cn"
 NVM_NODEJS_ORG_MIRROR="$MIRROR_SERVER/node/"
 MIRROR_NODE="$MIRROR_SERVER/node/"
 
-# Taobao Mirror
+# Mirror
 NPM_MIRROR_URL="https://registry.npmmirror.com"
+VOLTA_URL="https://get.volta.sh"
 
 __UPGRADE=""
 [ $# -ge 1 ] && __UPGRADE="Y"

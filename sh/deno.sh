@@ -254,39 +254,39 @@ version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "${1}
 # SH_END
 
 set_environment() {
-    if ! grep -q "## DENO" "$PROFILE"; then
-        echo -e "\n## DENO" >>"$PROFILE"
-    fi
+  if ! grep -q "## DENO" "$PROFILE"; then
+    echo -e "\n## DENO" >>"$PROFILE"
+  fi
 
-    if ! grep -q "export\sDENO_INSTALL" "$PROFILE"; then
-        echo "export DENO_INSTALL=\"${DENO_PATH}\"" >>"$PROFILE"
-    else
-        sedi "s@^export DENO_INSTALL.*@export DENO_INSTALL=\"${DENO_PATH}\"@" "$PROFILE"
-    fi
+  if ! grep -q "export\sDENO_INSTALL" "$PROFILE"; then
+    echo "export DENO_INSTALL=\"${DENO_PATH}\"" >>"$PROFILE"
+  else
+    sedi "s@^export DENO_INSTALL.*@export DENO_INSTALL=\"${DENO_PATH}\"@" "$PROFILE"
+  fi
 
-    if ! grep -q "export\sPATH=\"\$PATH:\$DENO_INSTALL/bin\"" "$PROFILE"; then
-        echo "export PATH=\"\$PATH:\$DENO_INSTALL/bin\"" >>"$PROFILE"
-    fi
+  if ! grep -q "export\sPATH=\"\$PATH:\$DENO_INSTALL/bin\"" "$PROFILE"; then
+    echo "export PATH=\"\$PATH:\$DENO_INSTALL/bin\"" >>"$PROFILE"
+  fi
 }
 
 show_info() {
-    "$HOME/.deno/bin/deno" --version
+  "$HOME/.deno/bin/deno" --version
 }
 
 install() {
-    check_in_china
-    if [ -n "$IN_CHINA" ]; then
-        TMPFILE=$(mktemp) || exit 1
-        CHINA_MIRROR_URL="https://ghproxy.com/"
+  check_in_china
+  if [ -n "$IN_CHINA" ]; then
+    TMPFILE=$(mktemp) || exit 1
+    CHINA_MIRROR_URL="https://ghproxy.com/"
 
-        curl -fsL -o "$TMPFILE" --connect-timeout 15 "${CHINA_MIRROR_URL}${INSTALL_URL}"
-        sedi "s@deno_uri=\"https://github.com@deno_uri=\"${CHINA_MIRROR_URL}https://github.com@" "$TMPFILE"
+    curl -fsL -o "$TMPFILE" --connect-timeout 15 "${CHINA_MIRROR_URL}${INSTALL_URL}"
+    sedi "s@deno_uri=\"https://github.com@deno_uri=\"${CHINA_MIRROR_URL}https://github.com@" "$TMPFILE"
 
-        bash "$TMPFILE"
-        rm -rf "$TMPFILE"
-    else
-        curl -fsL "$INSTALL_URL" | bash
-    fi
+    bash "$TMPFILE"
+    rm -rf "$TMPFILE"
+  else
+    curl -fsL "$INSTALL_URL" | bash
+  fi
 }
 
 __UPGRADE=""
@@ -302,12 +302,12 @@ PROFILE=$(detect_profile)
 set_environment
 
 if command_exists deno; then
-    say "deno has installed"
+  say "deno has installed"
 
-    if [ -z "$__UPGRADE" ]; then
-        show_info
-        exit
-    fi
+  if [ -z "$__UPGRADE" ]; then
+    show_info
+    exit
+  fi
 else
-    install
+  install
 fi
