@@ -21,3 +21,5 @@ curl -SL https://github.com/jetsung/devenv/raw/main/sh/go.sh | bash
 - dotnet.sh
 - go.sh
 - rust.sh
+- deno.sh
+- node.sh

@@ -254,75 +254,75 @@ version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "${1}
 # SH_END
 
 set_environment() {
-	if ! grep -q '## NODE' "$PROFILE"; then
-		printf "\n## NODE\n" >>"$PROFILE"
-	fi
+  if ! grep -q '## NODE' "$PROFILE"; then
+    printf "\n## NODE\n" >>"$PROFILE"
+  fi
 
-	if [ -n "$IN_CHINA" ]; then
-		if ! grep -q 'export\sNVM_NODEJS_ORG_MIRROR' "$PROFILE"; then
-			echo "export NVM_NODEJS_ORG_MIRROR=\"${NVM_NODEJS_ORG_MIRROR}\"" >>"$PROFILE"
-		else
-			sedi "s@^export NVM_NODEJS_ORG_MIRROR.*@export NVM_NODEJS_ORG_MIRROR=\"${NVM_NODEJS_ORG_MIRROR}\"@" "$PROFILE"
-		fi
+  if [ -n "$IN_CHINA" ]; then
+    if ! grep -q 'export\sNVM_NODEJS_ORG_MIRROR' "$PROFILE"; then
+      echo "export NVM_NODEJS_ORG_MIRROR=\"${NVM_NODEJS_ORG_MIRROR}\"" >>"$PROFILE"
+    else
+      sedi "s@^export NVM_NODEJS_ORG_MIRROR.*@export NVM_NODEJS_ORG_MIRROR=\"${NVM_NODEJS_ORG_MIRROR}\"@" "$PROFILE"
+    fi
 
-		if ! grep -q 'export\sNODE_MIRROR' "$PROFILE"; then
-			echo "export NODE_MIRROR=\"${MIRROR_NODE}\"" >>"$PROFILE"
-		else
-			sedi "s@^export NODE_MIRROR.*@export NODE_MIRROR=\"${MIRROR_NODE}\"@" "$PROFILE"
-		fi
-	fi
+    if ! grep -q 'export\sNODE_MIRROR' "$PROFILE"; then
+      echo "export NODE_MIRROR=\"${MIRROR_NODE}\"" >>"$PROFILE"
+    else
+      sedi "s@^export NODE_MIRROR.*@export NODE_MIRROR=\"${MIRROR_NODE}\"@" "$PROFILE"
+    fi
+  fi
 }
 
 # if RELEASE_TAG was not provided, assume latest
 latest_version() {
-	if [ -z "$RELEASE_TAG" ]; then
-		RELEASE_TAG="$(curl -sL https://nodejs.org/en/ | sed -n '/home-downloadbutton/p' | head -n 1 | cut -d '"' -f 8)"
-	fi
+  if [ -z "$RELEASE_TAG" ]; then
+    RELEASE_TAG="$(curl -sL https://nodejs.org/en/ | sed -n '/home-downloadbutton/p' | head -n 1 | cut -d '"' -f 8)"
+  fi
 }
 
 # show info
 show_info() {
-	source_volta
-	if command_exists node; then
-		npm config list
-		#     printf "
-		# npm version: %s
-		# node version: %s
-		# " $(npm --version) $(node --version)
-	fi
+  source_volta
+  if command_exists node; then
+    npm config list
+    #     printf "
+    # npm version: %s
+    # node version: %s
+    # " $(npm --version) $(node --version)
+  fi
 }
 
 source_volta() {
-	export VOLTA_HOME="$HOME/.volta"
-	export PATH="$VOLTA_HOME/bin:$PATH"
+  export VOLTA_HOME="$HOME/.volta"
+  export PATH="$VOLTA_HOME/bin:$PATH"
 }
 
 source_env() {
-	if [ -n "$IN_CHINA" ]; then
-		export NVM_NODEJS_ORG_MIRROR="$NVM_NODEJS_ORG_MIRROR"
-		export NODE_MIRROR="$MIRROR_NODE"
-	fi
+  if [ -n "$IN_CHINA" ]; then
+    export NVM_NODEJS_ORG_MIRROR="$NVM_NODEJS_ORG_MIRROR"
+    export NODE_MIRROR="$MIRROR_NODE"
+  fi
 }
 
 # install volta
 install_volta() {
-	curl https://get.volta.sh | bash
-	source_volta
+  curl https://get.volta.sh | bash
+  source_volta
 }
 
 install_node() {
-	source_env
+  source_env
 
-	if command_exists node; then
-		say "Node has installed"
+  if command_exists node; then
+    say "Node has installed"
 
-		if [ -z "$__UPGRADE" ]; then
-			show_info
-			exit
-		fi
-	else
-		volta install node@lts
-	fi
+    if [ -z "$__UPGRADE" ]; then
+      show_info
+      exit
+    fi
+  else
+    volta install node@lts
+  fi
 }
 
 IN_CHINA=""
@@ -343,25 +343,25 @@ __UPGRADE=""
 
 set_environment
 
-if [ -n "$VOLTA_HOME" ]; then
-	source_volta
-	echo "volta (installed) $(volta --version)"
+if [ -n "${VOLTA_HOME:-}" ]; then
+  source_volta
+  echo "volta (installed) $(volta --version)"
 else
-	# install volta
-	install_volta
-	echo "volta (installing) $(volta --version)"
+  # install volta
+  install_volta
+  echo "volta (installing) $(volta --version)"
 fi
 
 if [ -n "$__UPGRADE" ]; then
-	volta install node@lts
+  volta install node@lts
 else
-	install_node
+  install_node
 fi
 
 source_volta
 
 # installl latest npm
 if [ -n "$IN_CHINA" ]; then
-	npm config set registry "$NPM_MIRROR_URL"
+  npm config set registry "$NPM_MIRROR_URL"
 fi
 npm install -g npm
