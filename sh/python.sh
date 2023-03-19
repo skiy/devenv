@@ -1,122 +1,366 @@
 #!/usr/bin/env bash
 
-load_vars() {
-    # mirrors.bfsu.edu.cn/pypi/web
-    # pypi.tuna.tsinghua.edu.cn
-    MIRROR_PYTHON="mirrors.bfsu.edu.cn/pypi/web"
+##
+# python
+##
+
+# SH_START
+
+## include.sh START
+# shellcheck disable=SC2034
+
+set -e
+set -u
+set -o pipefail
+
+exec 3>&1
+
+script_name=$(basename "$0")
+
+if [ -t 1 ] && command -v tput >/dev/null; then
+    ncolors=$(tput colors || echo 0)
+    if [ -n "$ncolors" ] && [ "$ncolors" -ge 8 ]; then
+        bold="$(tput bold || echo)"
+        normal="$(tput sgr0 || echo)"
+        black="$(tput setaf 0 || echo)"
+        red="$(tput setaf 1 || echo)"
+        green="$(tput setaf 2 || echo)"
+        yellow="$(tput setaf 3 || echo)"
+        blue="$(tput setaf 4 || echo)"
+        magenta="$(tput setaf 5 || echo)"
+        cyan="$(tput setaf 6 || echo)"
+        white="$(tput setaf 7 || echo)"
+    fi
+fi
+
+say_warning() {
+    printf "%b\n" "${yellow:-}${script_name}: Warning: $1${normal:-}" >&3
 }
 
-set_environment() {
-    if command_exists pip; then
-        if [ -n "${IN_CHINA}" ]; then
-            # pip install pip -U
-            pip install -i "https://${MIRROR_PYTHON}/simple" pip -U  
-            pip config set global.index-url "https://${MIRROR_PYTHON}/simple" --trusted-host ${MIRROR_PYTHON}
-        fi    
+say_err() {
+    printf "%b\n" "${red:-}${script_name}: Error: $1${normal:-}" >&2
+    exit 1
+}
+
+say() {
+    printf "%b\n" "${cyan:-}${script_name}:${normal:-} $1" >&3
+}
+
+# sh echo
+sh_echo() {
+    command printf %s\\n "$*" 2>/dev/null
+}
+
+# try profile
+try_profile() {
+    if [ -z "${1-}" ] || [ ! -f "${1}" ]; then
+        return 1
+    fi
+    sh_echo "${1}"
+}
+
+# Get PROFILE
+detect_profile() {
+    if [[ "${PROFILE-}" = '/dev/null' ]]; then
+        # the user has specifically requested NOT to have nvm touch their profile
+        return
     fi
 
-    [[ -z "${1}" ]] || show_info
+    if [ -n "${PROFILE}" ] && [ -f "${PROFILE}" ]; then
+        sh_echo "${PROFILE}"
+        return
+    fi
+
+    DETECTED_PROFILE=''
+    if [ "${SHELL#*bash}" != "$SHELL" ]; then
+        if [ -f "$HOME/.bashrc" ]; then
+            DETECTED_PROFILE="$HOME/.bashrc"
+        elif [ -f "$HOME/.bash_profile" ]; then
+            DETECTED_PROFILE="$HOME/.bash_profile"
+        fi
+    elif [ "${SHELL#*zsh}" != "$SHELL" ]; then
+        if [ -f "$HOME/.zshrc" ]; then
+            DETECTED_PROFILE="$HOME/.zshrc"
+        fi
+    fi
+
+    if [ -z "$DETECTED_PROFILE" ]; then
+        for EACH_PROFILE in ".profile" ".bashrc" ".bash_profile" ".zshrc"; do
+            if DETECTED_PROFILE="$(try_profile "${HOME}/${EACH_PROFILE}")"; then
+                break
+            fi
+        done
+    fi
+
+    if [ -n "$DETECTED_PROFILE" ]; then
+        sh_echo "$DETECTED_PROFILE"
+    fi
 }
 
+# fix macos
+sedi() {
+    if [[ "${OS_TYPE:-unknown}" = "darwin" ]]; then
+        sed -i "" "$@"
+    else
+        sed -i "$@"
+    fi
+}
+
+# get OS
+get_os() {
+    OS_TYPE=$(uname | tr '[:upper:]' '[:lower:]')
+    case $OS_TYPE in
+    darwin) OS_TYPE='darwin' ;;
+    linux) OS_TYPE='linux' ;;
+    freebsd) OS_TYPE='freebsd' ;;
+        #        mingw*) OS_TYPE='windows';;
+        #        msys*) OS_TYPE='windows';;
+    *)
+        printf "\e[1;31mOS %s is not supported by this installation script\e[0m\n" "${OS}"
+        exit 1
+        ;;
+    esac
+}
+
+# get Arch
+get_arch() {
+    ARCH_TYPE=$(uname -m)
+    ARCH_BIT="$ARCH_TYPE"
+
+    case "$ARCH_TYPE" in
+    i386) ARCH_TYPE="386" ;;
+    amd64) ARCH_TYPE="x64" ;;
+    x86_64) ARCH_TYPE="x64" ;;
+    armv6l) ARCH_TYPE="armv6l" ;;
+    armv7l) ARCH_TYPE="armv7l" ;;
+    arm64) ARCH_TYPE="arm64" ;;
+    aarch64) ARCH_TYPE="arm64" ;;
+    *)
+        printf "\e[1;31mArchitecture %s is not supported by this installation script\e[0m\n" "$ARCH_TYPE"
+        exit 1
+        ;;
+    esac
+}
+
+# get github latest
+get_latest_github() {
+    __GHPROXY_URL=""
+    if [ -n "${GH_PROXY_URL:-}" ]; then
+        __GHPROXY_URL="$GH_PROXY_URL"
+    fi
+    curl -sL "${__GHPROXY_URL}https://api.github.com/repos/${1}/releases/latest" | grep '"tag_name":' | cut -d'"' -f4
+}
+
+# pkg manager tool
+pkg_manager_tool() {
+    PKG_TOOL_NAME=""
+    if command_exists yum; then
+        PKG_TOOL_NAME="yum"
+    elif command_exists apt-get; then
+        PKG_TOOL_NAME="apt"
+    elif command_exists brew; then
+        PKG_TOOL_NAME="brew"
+    fi
+}
+
+# command_exists
+command_exists() {
+    # shell script can't found.
+    # which "$@" > /dev/null 2>&1
+    command -v "$@" >/dev/null 2>&1
+    # command not found: xxx
+}
+
+# check in china
+check_in_china() {
+    IN_CHINA=""
+    if ! curl -s -m 3 -IL https://google.com | grep -q "200 OK"; then
+        IN_CHINA=1
+    fi
+}
+
+# install curl,wget command
+install_dl_command() {
+    pkg_manager_tool
+
+    if ! command_exists curl; then
+        if [[ "$PKG_TOOL_NAME" = "yum" ]]; then
+            sudo yum install -y curl wget
+        elif [[ "$PKG_TOOL_NAME" = "apt" ]]; then
+            sudo apt install -y curl wget
+        else
+            say_err "You must pre-install the curl,wget tool"
+        fi
+    fi
+}
+
+# download file
+download_file() {
+    url="${1}"
+    destination="${2}"
+
+    # printf "Fetching ${url} \n\n"
+
+    if command_exists curl; then
+        code=$(curl --connect-timeout 15 -w '%{http_code}' -L "${url}" -o "${destination}")
+    elif command_exists wget; then
+        code=$(wget -t2 -T15 -O "${destination}" --server-response "${url}" 2>&1 | awk '/^  HTTP/{print $2}' | tail -1)
+    else
+        printf "\e[1;31mNeither curl nor wget was available to perform http requests.\e[0m\n"
+        exit 1
+    fi
+
+    if [[ "$code" != "200" ]]; then
+        printf "\e[1;31mRequest failed with code %s\e[0m\n" "$code"
+        exit 1
+        # else
+        #     printf "\n\e[1;33mDownload succeeded\e[0m\n"
+    fi
+}
+
+# install curl command
+install_curl_command() {
+    if ! test -x "$(command -v curl)"; then
+        if test -x "$(command -v yum)"; then
+            yum install -y curl
+        elif test -x "$(command -v apt)"; then
+            apt install -y curl
+        else
+            say_err "You must pre-install the curl tool\n"
+        fi
+    fi
+}
+
+# create folder
+create_folder() {
+    if [ -n "${1}" ]; then
+        local MYPATH="${1}"
+        local REAL_PATH=${MYPATH/\$HOME/$HOME}
+        [ -d "$REAL_PATH" ] || mkdir "$REAL_PATH"
+        __TMP_PATH="$REAL_PATH"
+    fi
+}
+
+# Download file and unpack
+download_unpack() {
+    local downurl="$1"
+    local savepath="$2"
+
+    printf "Fetching %s \n\n" "$downurl"
+
+    curl -Lk --connect-timeout 30 --retry 5 --retry-max-time 360 --max-time 300 "$downurl" | gunzip | tar xf - --strip-components=1 -C "$savepath"
+}
+
+# compare version size
+version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "${1}"; }
+
+## include.sh END
+# SH_END
+
+set_environment() {
+    if command_exists python && command_exists pip; then
+        if [ -n "$IN_CHINA" ]; then
+            # pip install pip -U
+            pip install -i "https://$MIRROR_PYTHON/simple" pip -U
+            pip config set global.index-url "https://$MIRROR_PYTHON/simple" --trusted-host "$MIRROR_PYTHON"
+        fi
+    fi
+}
 
 show_info() {
-    source ${PROFILE}
-	python3 --version
+    python --version
 }
 
 install_conda() {
-    # http://mirrors.aliyun.com/anaconda
-    # https://mirrors.bfsu.edu.cn/anaconda
-    # https://mirrors.tuna.tsinghua.edu.cn/anaconda
+    CONDA_PATH=$(whereis conda | awk '{print $2}')
+    if [ -n "$CONDA_PATH" ]; then
+        conda_channel_mirror
+        return
+    fi
 
     echo "Anaconda installing"
 
-    local RepoURL
-    [[ -n "${IN_CHINA}" ]] && RepoURL="https://mirrors.bfsu.edu.cn/anaconda"
+    get_os
+    case "$OS_TYPE" in
+    linux) ArchOS="Linux" ;;
+    darwin) ArchOS="MacOSX" ;;
+    *) ArchOS="$OS_TYPE" ;;
+    esac
 
-    if command_exists conda; then
-        conda_channel_mirror "${RepoURL}"
-        return
-    fi
+    get_arch
+    case "$ARCH_TYPE" in
+    386) ArchType="x86_64" ;;
+    x64) ArchType="x86_64" ;;
+    *) ArchType="$ARCH_TYPE" ;;
+    esac
 
-    local Arch="x86_64"
-    local ArchOS="Linux"
-    local Version="2022.10"
-    local RepoURL="https://repo.anaconda.com"
+    local AnacondaURL="$RepoURL/archive/$FileName-$Version-$ArchOS-$ArchType.sh"
 
-    [[ "${OS}" == "darwin" ]] && ArchOS="MacOSX"
-    [[ "${ARCH}" == "arm64" ]] && Arch="arm64"
-
-    local AnacondaURL="${RepoURL}/archive/Anaconda3-${Version}-${ArchOS}-${Arch}.sh"
+    echo "$AnacondaURL"
     local TMPFILE="/tmp/anaconda.sh"
-
-    if [[ ! -f "${TMPFILE}" ]]; then
+    if [ ! -f "$TMPFILE" ]; then
         # echo "Save file to ${TMPFILE}"
-        curl -fL "${AnacondaURL}" -o "${TMPFILE}"
+        curl -fL "$AnacondaURL" -o "$TMPFILE"
     fi
 
-    ${SHELL} ${TMPFILE} 
+    ${SHELL} ${TMPFILE}
 
-    source ${PROFILE}
-    if ! command_exists conda; then
-        echo "not found conda"
-        return
+    CONDA_PATH=$(whereis conda | awk '{print $2}')
+    if [ -z "$CONDA_PATH" ]; then
+        say_err "not found conda"
+    else
+        $CONDA_PATH --version
     fi
-    conda_channel_mirror "${RepoURL}"
+    conda_channel_mirror
 }
 
 conda_channel_mirror() {
-    conda --version
-    conda init $(basename $SHELL)
+    _SHELL_NAME=$(basename "$SHELL")
 
-    local RepoURL="${1}"
+    $CONDA_PATH --version
+    $CONDA_PATH init "$_SHELL_NAME"
 
     # set channels mirror
-    conda config --set show_channel_urls true
+    $CONDA_PATH config --set show_channel_urls true
 
-    conda config --remove-key default_channels
-    conda config --add default_channels.0 "${RepoURL}/pkgs/main"
-    conda config --add default_channels.1 "${RepoURL}/pkgs/r"
-    conda config --add default_channels.2 "${RepoURL}/pkgs/msys2"
+    $CONDA_PATH config --remove-key default_channels
+    $CONDA_PATH config --add default_channels.0 "$RepoURL/pkgs/main"
+    $CONDA_PATH config --add default_channels.1 "$RepoURL/pkgs/r"
+    $CONDA_PATH config --add default_channels.2 "$RepoURL/pkgs/msys2"
 
-    conda config --remove-key custom_channels
-    conda config --set custom_channels.conda-forge "${RepoURL}/cloud"
-    conda config --set custom_channels.msys2 "${RepoURL}/cloud"
-    conda config --set custom_channels.bioconda "${RepoURL}/cloud"
-    conda config --set custom_channels.menpo "${RepoURL}/cloud"
-    conda config --set custom_channels.pytorch "${RepoURL}/cloud"
-    conda config --set custom_channels.pytorch-lts "${RepoURL}/cloud"
-    conda config --set custom_channels.simpleitk "${RepoURL}/cloud"
+    $CONDA_PATH config --remove-key custom_channels
+    $CONDA_PATH config --set custom_channels.conda-forge "$RepoURL/cloud"
+    $CONDA_PATH config --set custom_channels.msys2 "$RepoURL/cloud"
+    $CONDA_PATH config --set custom_channels.bioconda "$RepoURL/cloud"
+    $CONDA_PATH config --set custom_channels.menpo "$RepoURL/cloud"
+    $CONDA_PATH config --set custom_channels.pytorch "$RepoURL/cloud"
+    $CONDA_PATH config --set custom_channels.pytorch-lts "$RepoURL/cloud"
+    $CONDA_PATH config --set custom_channels.simpleitk "$RepoURL/cloud"
 
-    conda clean -i    
-    conda config --show-sources
+    $CONDA_PATH clean -i
+    $CONDA_PATH config --show-sources
 
     show_info
 }
 
-load_include() {
-    realpath=$(dirname "`readlink -f $0`")
-	include_tmp_path="/tmp/include_devenv.sh"
-	include_file_url="https://jihulab.com/jetsung/devenv/raw/main/sh/include.sh"
-	if [[ -f "${realpath}/include.sh" ]]; then
-    	. ${realpath}/include.sh
-	elif [[ -f "${include_tmp_path}" ]]; then
-		. "${include_tmp_path}"
-	else
-		curl -sL -o "${include_tmp_path}" "${include_file_url}"
-		[[ -f "${include_tmp_path}" ]] && . "${include_tmp_path}"
-	fi
-}
+Arch="x86_64"
+ArchOS="Linux"
+Version="2022.10"
+FileName="Anaconda3"
 
-main() {
-	load_include
-	load_vars
+# http://mirrors.aliyun.com/anaconda
+# https://mirrors.bfsu.edu.cn/anaconda
+# https://mirrors.tuna.tsinghua.edu.cn/anaconda
+RepoURL="https://repo.anaconda.com"
+Repo_CN_URL="https://mirrors.bfsu.edu.cn/anaconda"
 
-	set_environment
-	source ${PROFILE}
+# mirrors.bfsu.edu.cn/pypi/web
+# pypi.tuna.tsinghua.edu.cn
+MIRROR_PYTHON="mirrors.bfsu.edu.cn/pypi/web"
 
-    install_conda
-    set_environment
-}
+check_in_china
+[ -z "$IN_CHINA" ] || RepoURL="$Repo_CN_URL"
 
-main $@ || exit 1
+set_environment
+install_conda
+set_environment

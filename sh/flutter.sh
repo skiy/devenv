@@ -334,7 +334,7 @@ install() {
   [ -f "$TMPFILE" ] || curl -fL -o "$TMPFILE" "$DOWNLOWD_URL"
   [ -f "$TMPFILE" ] || say_err "No Found $TMPFILE"
 
-  rm -rf "$HOME/flutter"
+  rm -rf "$HOME/flutter" "$HOME/.flutter"
   if [[ "$OS_TYPE" = "darwin" ]]; then
     echo "Extracting"
     unzip -qq "$TMPFILE" -d "$HOME"
@@ -374,6 +374,8 @@ if command_exists flutter; then
   if [ -z "$__UPGRADE" ]; then
     show_info
     exit
+  else
+    "$HOME"/.flutter/bin/flutter upgrade
   fi
 else
   install

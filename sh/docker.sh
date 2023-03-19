@@ -318,6 +318,10 @@ fi
 
 if command_exists docker; then
     say "Docker has installed"
+    if [ -z "$__UPGRADE" ]; then
+        show_info
+        exit
+    fi
 else
     install
 fi
