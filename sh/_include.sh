@@ -138,7 +138,11 @@ get_arch() {
 
 # get github latest
 get_latest_github() {
-  curl -sL --connect-timeout 15 "https://api.github.com/repos/${1}/releases/latest" | grep '"tag_name":' | cut -d'"' -f4
+  __GHPROXY_URL=""
+  if [ -n "${GH_PROXY_URL:-}" ]; then
+    __GHPROXY_URL="$GH_PROXY_URL"
+  fi
+  curl -sL "${__GHPROXY_URL}https://api.github.com/repos/${1}/releases/latest" | grep '"tag_name":' | cut -d'"' -f4
 }
 
 # pkg manager tool

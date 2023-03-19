@@ -22,7 +22,7 @@ curl -SL https://github.com/jetsung/devenv/raw/main/sh/go.sh | bash
 - deno.sh
 - docker.sh
 - dotnet.sh
-- flutter.sh x
+- flutter.sh
 - go.sh
 - node.sh
 - python.sh x
