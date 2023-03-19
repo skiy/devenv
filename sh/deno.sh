@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 ##
-# dotnet
+# deno
 ##
 
 # SH_START

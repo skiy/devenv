@@ -18,8 +18,12 @@ curl -SL https://github.com/jetsung/devenv/raw/main/sh/go.sh | bash
 
 ### Version: 2023.03.19
 
-- dotnet.sh
-- go.sh
-- rust.sh
+- compose.sh x
 - deno.sh
+- docker.sh
+- dotnet.sh
+- flutter.sh x
+- go.sh
 - node.sh
+- python.sh x
+- rust.sh
