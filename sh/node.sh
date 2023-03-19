@@ -283,7 +283,7 @@ latest_version() {
 # show info
 show_info() {
   source_volta
-  if command_exists node; then
+  if node --version; then
     npm config list
     #     printf "
     # npm version: %s
@@ -324,7 +324,7 @@ install_volta() {
 install_node() {
   source_env
 
-  if command_exists node; then
+  if ! node --version; then
     say "Node has installed"
 
     if [ -z "$__UPGRADE" ]; then
@@ -366,10 +366,11 @@ fi
 
 if [ -n "$__UPGRADE" ]; then
   volta install node@lts
+else
+  install_node
 fi
 
 source_volta
-install_node
 
 # installl latest npm
 if [ -n "$IN_CHINA" ]; then
