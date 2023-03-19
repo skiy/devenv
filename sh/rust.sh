@@ -283,6 +283,8 @@ install() {
 RUSTUP_DIST_SERVER="https://rsproxy.cn"
 INSTALL_URL="https://sh.rustup.rs"
 
+export RUSTUP_DIST_SERVER="$RUSTUP_DIST_SERVER"
+
 __UPGRADE=""
 [ $# -ge 1 ] && __UPGRADE="Y"
 [ -z "$__UPGRADE" ] || rustup self uninstall
@@ -296,6 +298,6 @@ if command_exists rustc; then
 		exit
 	fi
 else
-	RUSTUP_UPDATE_ROOT="$RUSTUP_DIST_SERVER/rustup"
+	export RUSTUP_UPDATE_ROOT="$RUSTUP_DIST_SERVER/rustup"
 	install
 fi
