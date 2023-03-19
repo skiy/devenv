@@ -324,7 +324,7 @@ install_volta() {
 install_node() {
   source_env
 
-  if ! node --version; then
+  if volta which node; then
     say "Node has installed"
 
     if [ -z "$__UPGRADE" ]; then
@@ -366,11 +366,11 @@ fi
 
 if [ -n "$__UPGRADE" ]; then
   volta install node@lts
-else
-  install_node
 fi
 
 source_volta
+
+install_node
 
 # installl latest npm
 if [ -n "$IN_CHINA" ]; then
