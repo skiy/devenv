@@ -168,7 +168,7 @@ command_exists() {
 # check in china
 check_in_china() {
   IN_CHINA=""
-  if ! curl -s -m 3 -IL https://google.com | grep -q "200 OK"; then
+  if ! curl -s -m 3 -IL https://google.com | grep -q "HTTP/2 200"; then
     IN_CHINA=1
   fi
 }
