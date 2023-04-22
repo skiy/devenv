@@ -8,8 +8,10 @@
 # go
 curl -SL https://jihulab.com/jetsung/devenv/-/raw/main/sh/go.sh | bash
 
-# python
-curl -SL https://jihulab.com/jetsung/devenv/-/raw/main/sh/python.sh | bash
+# python anaconda
+curl -SL https://jihulab.com/jetsung/devenv/-/raw/main/sh/python.sh  && chmod +x /tmp/anaconda.sh &&  /tmp/anaconda.sh
+# python miniconda
+curl -SL https://jihulab.com/jetsung/devenv/-/raw/main/sh/python.sh && chmod +x /tmp/anaconda.sh &&  /tmp/anaconda.sh mini
 ```
 
 - 国外
@@ -18,13 +20,15 @@ curl -SL https://jihulab.com/jetsung/devenv/-/raw/main/sh/python.sh | bash
 # go
 curl -SL https://github.com/jetsung/devenv/raw/main/sh/go.sh | bash
 
-# python
-curl -SL https://github.com/jetsung/devenv/raw/main/sh/python.sh | bash
+# python anaconda
+curl -SL https://github.com/jetsung/devenv/raw/main/sh/python.sh && chmod +x /tmp/anaconda.sh &&  /tmp/anaconda.sh
+# python miniconda
+curl -SL https://github.com/jetsung/devenv/raw/main/sh/python.sh && chmod +x /tmp/anaconda.sh &&  /tmp/anaconda.sh mini
 ```
 
 ## 修改日志
 
-### Version: 2023.03.19
+### Version: 2023.04.23
 
 - composer.sh
 - deno.sh
