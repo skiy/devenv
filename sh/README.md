@@ -5,13 +5,21 @@
 - 国内
 
 ```bash
+# go
 curl -SL https://jihulab.com/jetsung/devenv/-/raw/main/sh/go.sh | bash
+
+# python
+curl -SL https://jihulab.com/jetsung/devenv/-/raw/main/sh/python.sh | bash
 ```
 
 - 国外
 
 ```bash
+# go
 curl -SL https://github.com/jetsung/devenv/raw/main/sh/go.sh | bash
+
+# python
+curl -SL https://github.com/jetsung/devenv/raw/main/sh/python.sh | bash
 ```
 
 ## 修改日志
