@@ -268,7 +268,26 @@ set_environment() {
 }
 
 show_info() {
-  python --version
+  # python --version
+  printf "
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup=\"\$('%s/bin/conda' 'shell.bash' 'hook' 2> /dev/null)\"
+if [ \$? -eq 0 ]; then
+    eval \"\$__conda_setup\"
+else
+    if [ -f \"%s/etc/profile.d/conda.sh\" ]; then
+        . \"/root/miniconda3/etc/profile.d/conda.sh\"
+    else
+        export PATH=\"%s/bin:\$PATH\"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+
+------------------------------
+Save to your environment file.
+" "$CONDA_SAVE_PATH" "$CONDA_SAVE_PATH" "$CONDA_SAVE_PATH"
 }
 
 install_conda() {
@@ -297,6 +316,7 @@ install_conda() {
   local AnacondaURL="$RepoURL/archive/$FileName-$Version-$ArchOS-$ArchType.sh"
   if [[ "$Miniconda" = "Yes" ]]; then
     AnacondaURL="$RepoURL/miniconda/Miniconda3-latest-$ArchOS-$ArchType.sh"
+    CONDA_SAVE_PATH="$HOME/miniconda3"
   fi
 
   echo "$AnacondaURL"
@@ -307,12 +327,12 @@ install_conda() {
   fi
 
   if [[ "$Miniconda" = "Yes" ]]; then
-    ${SHELL} ${TMPFILE} -b -p "$HOME"/miniconda3
+    ${SHELL} ${TMPFILE} -b -p "$CONDA_SAVE_PATH"
   else
-    ${SHELL} ${TMPFILE} -b -p "$HOME"/anaconda3 -y
+    ${SHELL} ${TMPFILE} -b -p "$CONDA_SAVE_PATH" -y
   fi
 
-  CONDA_PATH=$(whereis conda | awk '{print $2}')
+  CONDA_PATH="$CONDA_SAVE_PATH/bin/conda"
   if [ -z "$CONDA_PATH" ]; then
     say_err "not found conda"
   else
@@ -349,6 +369,8 @@ conda_channel_mirror() {
 
   show_info
 }
+
+CONDA_SAVE_PATH="$HOME/anaconda3"
 
 Arch="x86_64"
 ArchOS="Linux"
