@@ -307,9 +307,9 @@ install_conda() {
   fi
 
   if [[ "$Miniconda" = "Yes" ]]; then
-    ${SHELL} ${TMPFILE} "mini"
+    ${SHELL} ${TMPFILE} -b -p "$HOME"/miniconda3 -y
   else
-    ${SHELL} ${TMPFILE}
+    ${SHELL} ${TMPFILE} -b -p "$HOME"/anaconda3 -y
   fi
 
   CONDA_PATH=$(whereis conda | awk '{print $2}')
