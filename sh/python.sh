@@ -307,7 +307,7 @@ install_conda() {
   fi
 
   if [[ "$Miniconda" = "Yes" ]]; then
-    ${SHELL} ${TMPFILE} -b -p "$HOME"/miniconda3 -y
+    ${SHELL} ${TMPFILE} -b -p "$HOME"/miniconda3
   else
     ${SHELL} ${TMPFILE} -b -p "$HOME"/anaconda3 -y
   fi
