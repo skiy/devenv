@@ -258,93 +258,101 @@ version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "${1}
 # SH_END
 
 set_environment() {
-    if command_exists python && command_exists pip; then
-        if [ -n "$IN_CHINA" ]; then
-            # pip install pip -U
-            pip install -i "https://$MIRROR_PYTHON/simple" pip -U
-            pip config set global.index-url "https://$MIRROR_PYTHON/simple" --trusted-host "$MIRROR_PYTHON"
-        fi
+  if command_exists python && command_exists pip; then
+    if [ -n "$IN_CHINA" ]; then
+      # pip install pip -U
+      pip install -i "https://$MIRROR_PYTHON/simple" pip -U
+      pip config set global.index-url "https://$MIRROR_PYTHON/simple" --trusted-host "$MIRROR_PYTHON"
     fi
+  fi
 }
 
 show_info() {
-    python --version
+  python --version
 }
 
 install_conda() {
-    CONDA_PATH=$(whereis conda | awk '{print $2}')
-    if [ -n "$CONDA_PATH" ]; then
-        conda_channel_mirror
-        return
-    fi
-
-    echo "Anaconda installing"
-
-    get_os
-    case "$OS_TYPE" in
-    linux) ArchOS="Linux" ;;
-    darwin) ArchOS="MacOSX" ;;
-    *) ArchOS="$OS_TYPE" ;;
-    esac
-
-    get_arch
-    case "$ARCH_TYPE" in
-    386) ArchType="x86_64" ;;
-    x64) ArchType="x86_64" ;;
-    *) ArchType="$ARCH_TYPE" ;;
-    esac
-
-    local AnacondaURL="$RepoURL/archive/$FileName-$Version-$ArchOS-$ArchType.sh"
-    if [[ "$Miniconda" = "Yes" ]]; then
-        AnacondaURL="$RepoURL/miniconda/Miniconda3-latest-$ArchOS-$ArchType.sh"
-    fi
-
-    echo "$AnacondaURL"
-    local TMPFILE="/tmp/anaconda.sh"
-    if [ ! -f "$TMPFILE" ]; then
-        # echo "Save file to ${TMPFILE}"
-        curl -fL "$AnacondaURL" -o "$TMPFILE"
-    fi
-
-    ${SHELL} ${TMPFILE}
-
-    CONDA_PATH=$(whereis conda | awk '{print $2}')
-    if [ -z "$CONDA_PATH" ]; then
-        say_err "not found conda"
-    else
-        $CONDA_PATH --version
-    fi
+  CONDA_PATH=$(whereis conda | awk '{print $2}')
+  if [ -n "$CONDA_PATH" ]; then
     conda_channel_mirror
+    return
+  fi
+
+  echo "Anaconda installing"
+
+  get_os
+  case "$OS_TYPE" in
+  linux) ArchOS="Linux" ;;
+  darwin) ArchOS="MacOSX" ;;
+  *) ArchOS="$OS_TYPE" ;;
+  esac
+
+  get_arch
+  case "$ARCH_TYPE" in
+  386) ArchType="x86_64" ;;
+  x64) ArchType="x86_64" ;;
+  *) ArchType="$ARCH_TYPE" ;;
+  esac
+
+  local AnacondaURL="$RepoURL/archive/$FileName-$Version-$ArchOS-$ArchType.sh"
+  if [[ "$Miniconda" = "Yes" ]]; then
+    AnacondaURL="$RepoURL/miniconda/Miniconda3-latest-$ArchOS-$ArchType.sh"
+  fi
+
+  echo "$AnacondaURL"
+  local TMPFILE="/tmp/anaconda.sh"
+  if [ ! -f "$TMPFILE" ]; then
+    # echo "Save file to ${TMPFILE}"
+    curl -fL "$AnacondaURL" -o "$TMPFILE"
+  fi
+
+  if [[ "$Miniconda" = "Yes" ]]; then
+    ${SHELL} ${TMPFILE} "mini"
+  else
+    ${SHELL} ${TMPFILE}
+  fi
+
+  CONDA_PATH=$(whereis conda | awk '{print $2}')
+  if [ -z "$CONDA_PATH" ]; then
+    say_err "not found conda"
+  else
+    $CONDA_PATH --version
+  fi
+  conda_channel_mirror
 }
 
 conda_channel_mirror() {
-    _SHELL_NAME=$(basename "$SHELL")
+  _SHELL_NAME=$(basename "$SHELL")
 
-    $CONDA_PATH --version
-    $CONDA_PATH init "$_SHELL_NAME"
+  $CONDA_PATH --version
+  $CONDA_PATH init "$_SHELL_NAME"
 
-    # set channels mirror
-    $CONDA_PATH config --set show_channel_urls true
+  # set channels mirror
+  $CONDA_PATH config --set show_channel_urls true
 
-    $CONDA_PATH config --remove-key default_channels
-    $CONDA_PATH config --add default_channels.0 "$RepoURL/pkgs/main"
-    $CONDA_PATH config --add default_channels.1 "$RepoURL/pkgs/r"
-    $CONDA_PATH config --add default_channels.2 "$RepoURL/pkgs/msys2"
+  $CONDA_PATH config --remove-key default_channels
+  $CONDA_PATH config --add default_channels.0 "$RepoURL/pkgs/main"
+  $CONDA_PATH config --add default_channels.1 "$RepoURL/pkgs/r"
+  $CONDA_PATH config --add default_channels.2 "$RepoURL/pkgs/msys2"
 
-    $CONDA_PATH config --remove-key custom_channels
-    $CONDA_PATH config --set custom_channels.conda-forge "$RepoURL/cloud"
-    $CONDA_PATH config --set custom_channels.msys2 "$RepoURL/cloud"
-    $CONDA_PATH config --set custom_channels.bioconda "$RepoURL/cloud"
-    $CONDA_PATH config --set custom_channels.menpo "$RepoURL/cloud"
-    $CONDA_PATH config --set custom_channels.pytorch "$RepoURL/cloud"
-    $CONDA_PATH config --set custom_channels.pytorch-lts "$RepoURL/cloud"
-    $CONDA_PATH config --set custom_channels.simpleitk "$RepoURL/cloud"
+  $CONDA_PATH config --remove-key custom_channels
+  $CONDA_PATH config --set custom_channels.conda-forge "$RepoURL/cloud"
+  $CONDA_PATH config --set custom_channels.msys2 "$RepoURL/cloud"
+  $CONDA_PATH config --set custom_channels.bioconda "$RepoURL/cloud"
+  $CONDA_PATH config --set custom_channels.menpo "$RepoURL/cloud"
+  $CONDA_PATH config --set custom_channels.pytorch "$RepoURL/cloud"
+  $CONDA_PATH config --set custom_channels.pytorch-lts "$RepoURL/cloud"
+  $CONDA_PATH config --set custom_channels.simpleitk "$RepoURL/cloud"
 
-    $CONDA_PATH clean -i
-    $CONDA_PATH config --show-sources
+  $CONDA_PATH clean -i
+  $CONDA_PATH config --show-sources
 
-    show_info
+  show_info
 }
+
+# Enable mouse interaction
+tput smmous
+echo -ne "\033[?1000h"
 
 Arch="x86_64"
 ArchOS="Linux"
@@ -369,8 +377,8 @@ MIRROR_PYTHON="mirrors.bfsu.edu.cn/pypi/web"
 check_in_china
 [ -z "$IN_CHINA" ] || RepoURL="$Repo_CN_URL"
 
-if [[ "${1}" = "mini" ]]; then
-    Miniconda="Yes"
+if [[ "${1:-}" = "mini" ]]; then
+  Miniconda="Yes"
 fi
 
 set_environment

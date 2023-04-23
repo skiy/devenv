@@ -9,9 +9,9 @@
 curl -SL https://jihulab.com/jetsung/devenv/-/raw/main/sh/go.sh | bash
 
 # python anaconda
-curl -SL https://jihulab.com/jetsung/devenv/-/raw/main/sh/python.sh  && bash /tmp/anaconda.sh
+curl -SL https://jihulab.com/jetsung/devenv/-/raw/main/sh/python.sh | bash
 # python miniconda
-curl -SL https://jihulab.com/jetsung/devenv/-/raw/main/sh/python.sh && bash /tmp/anaconda.sh mini
+curl -SL https://jihulab.com/jetsung/devenv/-/raw/main/sh/python.sh | bash -s -- mini
 ```
 
 - 国外
@@ -21,9 +21,9 @@ curl -SL https://jihulab.com/jetsung/devenv/-/raw/main/sh/python.sh && bash /tmp
 curl -SL https://github.com/jetsung/devenv/raw/main/sh/go.sh | bash
 
 # python anaconda
-curl -SL https://github.com/jetsung/devenv/raw/main/sh/python.sh && bash /tmp/anaconda.sh
+curl -SL https://github.com/jetsung/devenv/raw/main/sh/python.sh | bash
 # python miniconda
-curl -SL https://github.com/jetsung/devenv/raw/main/sh/python.sh && bash /tmp/anaconda.sh mini
+curl -SL https://github.com/jetsung/devenv/raw/main/sh/python.sh | bash -s -- mini
 ```
 
 ## 修改日志
