@@ -350,10 +350,6 @@ conda_channel_mirror() {
   show_info
 }
 
-# Enable mouse interaction
-tput smmous
-echo -ne "\033[?1000h"
-
 Arch="x86_64"
 ArchOS="Linux"
 Version="2023.03"
