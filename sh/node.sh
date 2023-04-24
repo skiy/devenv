@@ -340,6 +340,8 @@ install_node() {
   fi
 }
 
+get_os
+
 IN_CHINA=""
 check_in_china
 
