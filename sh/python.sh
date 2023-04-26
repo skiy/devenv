@@ -326,11 +326,7 @@ install_conda() {
     curl -fL "$AnacondaURL" -o "$TMPFILE"
   fi
 
-  if [[ "$Miniconda" = "Yes" ]]; then
-    ${SHELL} ${TMPFILE} -b -p "$CONDA_SAVE_PATH"
-  else
-    ${SHELL} ${TMPFILE} -b -p "$CONDA_SAVE_PATH" -y
-  fi
+  ${SHELL} ${TMPFILE} -b
 
   CONDA_PATH="$CONDA_SAVE_PATH/bin/conda"
   if [ -z "$CONDA_PATH" ]; then
@@ -350,24 +346,27 @@ conda_channel_mirror() {
   # set channels mirror
   $CONDA_PATH config --set show_channel_urls true
 
-  $CONDA_PATH config --remove-key default_channels
-  $CONDA_PATH config --add default_channels.0 "$RepoURL/pkgs/main"
-  $CONDA_PATH config --add default_channels.1 "$RepoURL/pkgs/r"
-  $CONDA_PATH config --add default_channels.2 "$RepoURL/pkgs/msys2"
+  if [[ "$Miniconda" != "Yes" ]]; then
 
-  $CONDA_PATH config --remove-key custom_channels
-  $CONDA_PATH config --set custom_channels.conda-forge "$RepoURL/cloud"
-  $CONDA_PATH config --set custom_channels.msys2 "$RepoURL/cloud"
-  $CONDA_PATH config --set custom_channels.bioconda "$RepoURL/cloud"
-  $CONDA_PATH config --set custom_channels.menpo "$RepoURL/cloud"
-  $CONDA_PATH config --set custom_channels.pytorch "$RepoURL/cloud"
-  $CONDA_PATH config --set custom_channels.pytorch-lts "$RepoURL/cloud"
-  $CONDA_PATH config --set custom_channels.simpleitk "$RepoURL/cloud"
+    $CONDA_PATH config --remove-key default_channels
+    $CONDA_PATH config --add default_channels.0 "$RepoURL/pkgs/main"
+    $CONDA_PATH config --add default_channels.1 "$RepoURL/pkgs/r"
+    $CONDA_PATH config --add default_channels.2 "$RepoURL/pkgs/msys2"
 
-  $CONDA_PATH clean -i
-  $CONDA_PATH config --show-sources
+    $CONDA_PATH config --remove-key custom_channels
+    $CONDA_PATH config --set custom_channels.conda-forge "$RepoURL/cloud"
+    $CONDA_PATH config --set custom_channels.msys2 "$RepoURL/cloud"
+    $CONDA_PATH config --set custom_channels.bioconda "$RepoURL/cloud"
+    $CONDA_PATH config --set custom_channels.menpo "$RepoURL/cloud"
+    $CONDA_PATH config --set custom_channels.pytorch "$RepoURL/cloud"
+    $CONDA_PATH config --set custom_channels.pytorch-lts "$RepoURL/cloud"
+    $CONDA_PATH config --set custom_channels.simpleitk "$RepoURL/cloud"
 
-  show_info
+    $CONDA_PATH clean -i
+    $CONDA_PATH config --show-sources
+
+  # show_info
+  fi
 }
 
 CONDA_SAVE_PATH="$HOME/anaconda3"
@@ -381,7 +380,7 @@ FileName="Anaconda3"
 # https://mirrors.bfsu.edu.cn/anaconda
 # https://mirrors.tuna.tsinghua.edu.cn/anaconda
 RepoURL="https://repo.anaconda.com"
-Repo_CN_URL="https://mirrors.bfsu.edu.cn/anaconda"
+Repo_CN_URL="https://mirrors.tuna.tsinghua.edu.cn/anaconda"
 
 Miniconda="No"
 
