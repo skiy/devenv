@@ -269,7 +269,7 @@ set_environment() {
 
 show_info() {
   # shellcheck source=/dev/null
-  . "$PROFILE"
+  source "$PROFILE"
   python --version
 }
 
