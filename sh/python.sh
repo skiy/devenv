@@ -268,26 +268,9 @@ set_environment() {
 }
 
 show_info() {
-  # python --version
-  printf "
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup=\"\$('%s/bin/conda' 'shell.bash' 'hook' 2> /dev/null)\"
-if [ \$? -eq 0 ]; then
-    eval \"\$__conda_setup\"
-else
-    if [ -f \"%s/etc/profile.d/conda.sh\" ]; then
-        . \"/root/miniconda3/etc/profile.d/conda.sh\"
-    else
-        export PATH=\"%s/bin:\$PATH\"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
-
-------------------------------
-Save to your environment file.
-" "$CONDA_SAVE_PATH" "$CONDA_SAVE_PATH" "$CONDA_SAVE_PATH"
+  # shellcheck source=/dev/null
+  . "$PROFILE"
+  python --version
 }
 
 install_conda() {
@@ -326,7 +309,7 @@ install_conda() {
     curl -fL "$AnacondaURL" -o "$TMPFILE"
   fi
 
-  ${SHELL} ${TMPFILE} -b
+  bash ${TMPFILE} -b
 
   CONDA_PATH="$CONDA_SAVE_PATH/bin/conda"
   if [ -z "$CONDA_PATH" ]; then
@@ -337,23 +320,31 @@ install_conda() {
   conda_channel_mirror
 }
 
-conda_channel_mirror() {
+conda_init() {
   _SHELL_NAME=$(basename "$SHELL")
 
-  $CONDA_PATH --version
+  # $CONDA_PATH --version
   $CONDA_PATH init "$_SHELL_NAME"
+}
+
+conda_channel_mirror() {
+  conda_init
 
   # set channels mirror
   $CONDA_PATH config --set show_channel_urls true
 
   if [[ "$Miniconda" != "Yes" ]]; then
 
-    $CONDA_PATH config --remove-key default_channels
+    if [[ -n $($CONDA_PATH config --get default_channels) ]]; then
+      $CONDA_PATH config --remove-key default_channels
+    fi
     $CONDA_PATH config --add default_channels.0 "$RepoURL/pkgs/main"
     $CONDA_PATH config --add default_channels.1 "$RepoURL/pkgs/r"
     $CONDA_PATH config --add default_channels.2 "$RepoURL/pkgs/msys2"
 
-    $CONDA_PATH config --remove-key custom_channels
+    if [[ -n $($CONDA_PATH config --get custom_channels) ]]; then
+      $CONDA_PATH config --remove-key custom_channels
+    fi
     $CONDA_PATH config --set custom_channels.conda-forge "$RepoURL/cloud"
     $CONDA_PATH config --set custom_channels.msys2 "$RepoURL/cloud"
     $CONDA_PATH config --set custom_channels.bioconda "$RepoURL/cloud"
@@ -361,13 +352,17 @@ conda_channel_mirror() {
     $CONDA_PATH config --set custom_channels.pytorch "$RepoURL/cloud"
     $CONDA_PATH config --set custom_channels.pytorch-lts "$RepoURL/cloud"
     $CONDA_PATH config --set custom_channels.simpleitk "$RepoURL/cloud"
-
-    $CONDA_PATH clean -i
-    $CONDA_PATH config --show-sources
-
-  # show_info
   fi
+
+  $CONDA_PATH clean -i
+  $CONDA_PATH config --show-sources
+
+  show_info
 }
+
+# Profile
+PROFILE=""
+PROFILE="$(detect_profile)"
 
 CONDA_SAVE_PATH="$HOME/anaconda3"
 
@@ -389,7 +384,7 @@ Miniconda="No"
 
 # mirrors.bfsu.edu.cn/pypi/web
 # pypi.tuna.tsinghua.edu.cn
-MIRROR_PYTHON="mirrors.bfsu.edu.cn/pypi/web"
+MIRROR_PYTHON="pypi.tuna.tsinghua.edu.cn"
 
 check_in_china
 [ -z "$IN_CHINA" ] || RepoURL="$Repo_CN_URL"
