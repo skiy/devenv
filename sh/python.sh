@@ -296,6 +296,11 @@ install_conda() {
   *) ArchType="$ARCH_TYPE" ;;
   esac
 
+  # linux arm64
+  if [[ "$ArchOS" = "Linux" ]] && [[ "$ArchType" = "arm64" ]]; then
+    ArchType="aarch64"
+  fi
+
   local AnacondaURL="$RepoURL/archive/$FileName-$Version-$ArchOS-$ArchType.sh"
   if [[ "$Miniconda" = "Yes" ]]; then
     AnacondaURL="$RepoURL/miniconda/Miniconda3-latest-$ArchOS-$ArchType.sh"
