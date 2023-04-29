@@ -296,15 +296,18 @@ install_conda() {
   *) ArchType="$ARCH_TYPE" ;;
   esac
 
-  # linux arm64
-  if [[ "$ArchOS" = "Linux" ]] && [[ "$ArchType" = "arm64" ]]; then
-    ArchType="aarch64"
-  fi
-
   local AnacondaURL="$RepoURL/archive/$FileName-$Version-$ArchOS-$ArchType.sh"
   if [[ "$Miniconda" = "Yes" ]]; then
     AnacondaURL="$RepoURL/miniconda/Miniconda3-latest-$ArchOS-$ArchType.sh"
     CONDA_SAVE_PATH="$HOME/miniconda3"
+  fi
+
+  if [[ "$(uname -n)" = "raspberrypi" ]]; then
+    AnacondaURL="https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh"
+    CONDA_SAVE_PATH="$HOME/miniforge3"
+    if [[ -z "$IN_CHINA" ]]; then
+      AnacondaURL="https://ghproxy.com/$AnacondaURL"
+    fi
   fi
 
   echo "$AnacondaURL"
