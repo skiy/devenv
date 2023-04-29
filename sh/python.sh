@@ -304,7 +304,7 @@ install_conda() {
 
   if [[ "$(uname -n)" = "raspberrypi" ]]; then
     AnacondaURL="https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh"
-    CONDA_SAVE_PATH="$HOME/miniforge3"
+    CONDA_SAVE_PATH="$HOME/mambaforge"
     if [[ -n "$IN_CHINA" ]]; then
       AnacondaURL="https://ghproxy.com/$AnacondaURL"
     fi
