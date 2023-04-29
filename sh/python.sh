@@ -302,7 +302,8 @@ install_conda() {
     CONDA_SAVE_PATH="$HOME/miniconda3"
   fi
 
-  if [[ "$(uname -n)" = "raspberrypi" ]]; then
+  # linux arm64
+  if [[ "$ArchOS" = "Linux" ]] && [[ "$ArchType" = "arm64" ]]; then
     AnacondaURL="https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-$(uname)-$(uname -m).sh"
     CONDA_SAVE_PATH="$HOME/mambaforge"
     if [[ -n "$IN_CHINA" ]]; then
