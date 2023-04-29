@@ -258,56 +258,50 @@ version_ge() { test "$(echo "$@" | tr " " "\n" | sort -rV | head -n 1)" == "${1}
 # SH_END
 
 set_environment() {
-	if [ -z "${IN_CHINA:-}" ]; then
-		check_in_china
-	fi
+  if [[ -z "${IN_CHINA:-}" ]]; then
+    check_in_china
+  fi
 
-	export RUSTUP_UPDATE_ROOT="$RUSTUP_DIST_SERVER/rustup"
+  export RUSTUP_UPDATE_ROOT="$RUSTUP_DIST_SERVER/rustup"
 
-	# China
-	if [ -n "$IN_CHINA" ]; then
-		if ! grep -q '## RUST' "$PROFILE"; then
-			echo -e "\n## RUST" >>"$PROFILE"
-		fi
+  # China
+  if [[ -n "$IN_CHINA" ]]; then
+    if ! grep -q '## RUST' "$PROFILE"; then
+      echo -e "\n## RUST" >>"$PROFILE"
+    fi
 
-		if ! grep -q 'export\sRUSTUP_DIST_SERVER' "$PROFILE"; then
-			echo "export RUSTUP_DIST_SERVER=\"$RUSTUP_DIST_SERVER\"" >>"$PROFILE"
-		else
-			sedi "s@^export RUSTUP_DIST_SERVER.*@export RUSTUP_DIST_SERVER=\"$RUSTUP_DIST_SERVER\"@" "$PROFILE"
-		fi
+    if ! grep -q 'export\sRUSTUP_DIST_SERVER' "$PROFILE"; then
+      echo "export RUSTUP_DIST_SERVER=\"$RUSTUP_DIST_SERVER\"" >>"$PROFILE"
+    else
+      sedi "s@^export RUSTUP_DIST_SERVER.*@export RUSTUP_DIST_SERVER=\"$RUSTUP_DIST_SERVER\"@" "$PROFILE"
+    fi
 
-		if ! grep -q 'export\sRUSTUP_UPDATE_ROOT' "$PROFILE"; then
-			echo "export RUSTUP_UPDATE_ROOT=\"$RUSTUP_DIST_SERVER/rustup\"" >>"$PROFILE"
-		else
-			sedi "s@^export RUSTUP_UPDATE_ROOT.*@export RUSTUP_UPDATE_ROOT=\"$RUSTUP_DIST_SERVER/rustup\"@" "$PROFILE"
-		fi
-	fi
-
-	# shellcheck source=/dev/null
-	. "$HOME"/.cargo/env
-
-	cargo install crm
-	crm best
+    if ! grep -q 'export\sRUSTUP_UPDATE_ROOT' "$PROFILE"; then
+      echo "export RUSTUP_UPDATE_ROOT=\"$RUSTUP_DIST_SERVER/rustup\"" >>"$PROFILE"
+    else
+      sedi "s@^export RUSTUP_UPDATE_ROOT.*@export RUSTUP_UPDATE_ROOT=\"$RUSTUP_DIST_SERVER/rustup\"@" "$PROFILE"
+    fi
+  fi
 }
 
 show_info() {
-	# shellcheck source=/dev/null
-	. "$HOME"/.cargo/env
+  # shellcheck source=/dev/null
+  . "$HOME"/.cargo/env
 
-	rustc --version
-	rustup --version
+  rustc --version
+  rustup --version
 }
 
 install() {
-	if [ -z "${IN_CHINA:-}" ]; then
-		check_in_china
-	fi
+  if [ -z "${IN_CHINA:-}" ]; then
+    check_in_china
+  fi
 
-	if [ -n "$IN_CHINA" ]; then
-		INSTALL_URL="$RUSTUP_DIST_SERVER/rustup-init.sh"
-	fi
+  if [ -n "$IN_CHINA" ]; then
+    INSTALL_URL="$RUSTUP_DIST_SERVER/rustup-init.sh"
+  fi
 
-	curl --proto '=https' --tlsv1.2 -sSf "$INSTALL_URL" | sh
+  curl --proto '=https' --tlsv1.2 -sSf "$INSTALL_URL" | sh
 }
 
 PROFILE=""
@@ -322,15 +316,28 @@ __UPGRADE=""
 [ $# -ge 1 ] && __UPGRADE="Y"
 [ -z "$__UPGRADE" ] || rustup self uninstall
 
-if command_exists rustc; then
-	say "Rust has installed"
+set_environment
 
-	set_environment
-	if [ -z "$__UPGRADE" ]; then
-		show_info
-		exit
-	fi
+if command_exists rustc; then
+  say "Rust has installed"
+
+  # shellcheck source=/dev/null
+  . "$HOME"/.cargo/env
+
+  cargo install crm
+  crm best
+
+  if [ -z "$__UPGRADE" ]; then
+    show_info
+    exit
+  fi
 else
-	export RUSTUP_UPDATE_ROOT="$RUSTUP_DIST_SERVER/rustup"
-	install
+  export RUSTUP_UPDATE_ROOT="$RUSTUP_DIST_SERVER/rustup"
+  install
+
+  # shellcheck source=/dev/null
+  . "$HOME"/.cargo/env
+
+  cargo install crm
+  crm best
 fi
