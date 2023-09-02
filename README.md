@@ -64,6 +64,7 @@ export PATH="$PATH:$DOTNET_ROOT"
 export FLUTTER_STORAGE_BASE_URL="https://storage.flutter-io.cn/"
 export PUB_HOSTED_URL="https://pub.flutter-io.cn"
 export PATH="$PATH:$HOME/.flutter/bin"
+export PATH="$PATH:$HOME/.pub-cache/bin"
 ```
 
 - **DENO**
@@ -95,12 +96,15 @@ export NODE_MIRROR="https://mirrors.ustc.edu.cn/node/"
 # (安装脚本未配置 Qt)
 ## QT
 export QT_VERSION="5.15.2"
-export QT_DIR="$HOME/Qt/$QT_VERSION"
+export QT_PATH="$HOME/Qt"
+export QT_DIR="$QT_PATH/$QT_VERSION"
 export QT_INSTALL_PREFIX="$QT_DIR/gcc_64"
-export QT_PLUGIN_PATH="$QT_INSTALL_PREFIX/plugins" # 可能可以忽略, QT_INSTALL_PLUGINS
-export QML2_IMPORT_PATH="$QT_INSTALL_PREFIX/qml" # 可能可以忽略, QT_INSTALL_QML
 export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:$QT_INSTALL_PREFIX/lib"
 export PATH="$PATH:$QT_INSTALL_PREFIX/bin"
+export PATH=$QT_PATH/Tools/QtCreator/bin:$PATH
+# 可能可以忽略
+export QT_PLUGIN_PATH="$QT_INSTALL_PREFIX/plugins"
+export QML2_IMPORT_PATH="$QT_INSTALL_PREFIX/qml"
 ```
 
 需要修正使用的是 `gcc` 还是 `clang`

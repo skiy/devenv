@@ -279,6 +279,10 @@ set_environment() {
   if ! grep -q "export\sPATH=\"\$PATH:\$HOME/.flutter/bin\"" "$PROFILE"; then
     echo "export PATH=\"\$PATH:\$HOME/.flutter/bin\"" >>"$PROFILE"
   fi
+
+  if ! grep -q "export\sPATH=\"\$PATH:\$HOME/.pub-cache/bin\"" "$PROFILE"; then
+    echo "export PATH=\"\$PATH:\$HOME/.pub-cache/bin\"" >>"$PROFILE"
+  fi
 }
 
 install() {
