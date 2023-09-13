@@ -318,7 +318,7 @@ install_conda() {
     curl -fL "$AnacondaURL" -o "$TMPFILE"
   fi
 
-  bash ${TMPFILE} -b
+  bash "${TMPFILE}" -b
 
   CONDA_PATH="$CONDA_SAVE_PATH/bin/conda"
   if [ -z "$CONDA_PATH" ]; then
@@ -380,7 +380,7 @@ ArchOS="Linux"
 Version="2023.03"
 FileName="Anaconda3"
 
-# http://mirrors.aliyun.com/anaconda
+# https://mirrors.aliyun.com/anaconda
 # https://mirrors.bfsu.edu.cn/anaconda
 # https://mirrors.tuna.tsinghua.edu.cn/anaconda
 RepoURL="https://repo.anaconda.com"
@@ -397,6 +397,8 @@ MIRROR_PYTHON="pypi.tuna.tsinghua.edu.cn"
 
 check_in_china
 [ -z "$IN_CHINA" ] || RepoURL="$Repo_CN_URL"
+
+RepoURL=${REPO:-$RepoURL}
 
 if [[ "${1:-}" = "mini" ]]; then
   Miniconda="Yes"

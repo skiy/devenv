@@ -24,6 +24,8 @@ curl -SL https://github.com/jetsung/devenv/raw/main/sh/go.sh | bash
 curl -SL https://github.com/jetsung/devenv/raw/main/sh/python.sh | bash
 # python miniconda
 curl -SL https://github.com/jetsung/devenv/raw/main/sh/python.sh | bash -s -- mini
+
+REPO=https://mirrors.aliyun.com/anaconda bash ./python.sh
 ```
 
 ## 修改日志
