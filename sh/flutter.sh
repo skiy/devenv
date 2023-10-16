@@ -360,8 +360,12 @@ __UPGRADE=""
 [ $# -ge 1 ] && __UPGRADE="Y"
 [ -z "$__UPGRADE" ] || rm -rf "$HOME"/.flutter
 
-STORAGE_BASE_URL="https://storage.googleapis.com/"
-FLUTTER_STORAGE_BASE_URL="https://storage.flutter-io.cn/"
+#STORAGE_BASE_URL="https://storage.googleapis.com/"
+#FLUTTER_STORAGE_BASE_URL="https://storage.flutter-io.cn/"
+# https://help.mirrors.cernet.edu.cn/flutter/
+FLUTTER_STORAGE_BASE_URL="https://mirrors.cernet.edu.cn/flutter"
+# https://help.mirrors.cernet.edu.cn/dart-pub/
+PUB_HOSTED_URL="https://mirrors.cernet.edu.cn/dart-pub"
 PUB_HOSTED_URL="https://pub.flutter-io.cn"
 
 PROFILE=""
@@ -375,7 +379,7 @@ set_environment
 if command_exists flutter; then
   say "Flutter has installed"
 
-  if [ -z "$__UPGRADE" ]; then
+  if [[ -z "$__UPGRADE" ]]; then
     show_info
     exit
   else

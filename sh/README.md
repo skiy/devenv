@@ -30,7 +30,7 @@ REPO=https://mirrors.aliyun.com/anaconda bash ./python.sh
 
 ## 修改日志
 
-### Version: 2023.04.23
+### Version: 20231016
 
 - composer.sh
 - deno.sh

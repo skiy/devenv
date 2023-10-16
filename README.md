@@ -39,13 +39,14 @@ export PATH="$PATH:$GOROOT/bin:$GOBIN"
 export ASSUME_NO_MOVING_GC_UNSAFE_RISK_IT_WITH=go1.18
 ```
 
-- **~~RUST~~**
+- **RUST**
+  已使用 crm 作为镜像管理。
 
 ```sh
-# (已使用 crm 作为镜像管理工具)
 ## RUST
 export RUSTUP_DIST_SERVER="https://mirrors.ustc.edu.cn/rust-static"
 export RUSTUP_UPDATE_ROOT="https://mirrors.ustc.edu.cn/rust-static/rustup"
+
 ## 此项会自动添加
 #. "$HOME/.cargo/env"
 ```
@@ -61,8 +62,15 @@ export PATH="$PATH:$DOTNET_ROOT"
 - **Flutter**
 
 ```sh
-export FLUTTER_STORAGE_BASE_URL="https://storage.flutter-io.cn/"
-export PUB_HOSTED_URL="https://pub.flutter-io.cn"
+# https://flutter.cn/community/china#为-flutter-设定镜像配置
+# export FLUTTER_STORAGE_BASE_URL="https://storage.flutter-io.cn/"
+# export PUB_HOSTED_URL="https://pub.flutter-io.cn"
+
+# https://help.mirrors.cernet.edu.cn/flutter/
+export FLUTTER_STORAGE_BASE_URL="https://mirrors.cernet.edu.cn/flutter"
+# https://help.mirrors.cernet.edu.cn/dart-pub/
+export PUB_HOSTED_URL="https://mirrors.cernet.edu.cn/dart-pub"
+
 export PATH="$PATH:$HOME/.flutter/bin"
 export PATH="$PATH:$HOME/.pub-cache/bin"
 ```

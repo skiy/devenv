@@ -3,9 +3,7 @@
 ## include.sh START
 # shellcheck disable=SC2034
 
-set -e
-set -u
-set -o pipefail
+set -euo pipefail
 
 exec 3>&1
 
