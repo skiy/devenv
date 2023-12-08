@@ -166,3 +166,9 @@ export HOMEBREW_BREW_GIT_REMOTE="https://mirrors.ustc.edu.cn/brew.git"
 export HOMEBREW_CORE_GIT_REMOTE="https://mirrors.ustc.edu.cn/homebrew-core.git"
 export HOMEBREW_BOTTLE_DOMAIN="https://mirrors.ustc.edu.cn/homebrew-bottles"
 ```
+
+## 仓库镜像
+
+- https://git.jetsung.com/jetsung/devenv
+- https://framagit.org/jetsung/devenv
+- https://github.com/jetsung/devenv
