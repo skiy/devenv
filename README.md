@@ -18,7 +18,7 @@
 ```
 git clone https://github.com/jetsung/devenv.git
 # 或
-git clone https://jihulab.com/jetsung/devenv.git
+git clone https://framagit.org/jetsung/devenv.git
 
 cd devenv && ./install.sh
 ```

@@ -6,12 +6,12 @@
 
 ```bash
 # go
-curl -SL https://jihulab.com/jetsung/devenv/-/raw/main/sh/go.sh | bash
+curl -SL https://framagit.org/jetsung/devenv/-/raw/main/sh/go.sh | bash
 
 # python anaconda
-curl -SL https://jihulab.com/jetsung/devenv/-/raw/main/sh/python.sh | bash
+curl -SL https://framagit.org/jetsung/devenv/-/raw/main/sh/python.sh | bash
 # python miniconda
-curl -SL https://jihulab.com/jetsung/devenv/-/raw/main/sh/python.sh | bash -s -- mini
+curl -SL https://framagit.org/jetsung/devenv/-/raw/main/sh/python.sh | bash -s -- mini
 ```
 
 - 国外

@@ -4,7 +4,7 @@
 ##
 ## Jetsung Chan <jetsungchan@gmail.com>
 ##
-## https://jihulab.com/jetsung/devenv
+## https://framagit.org/jetsung/devenv
 ## https://github.com/jetsung/devenv
 ##
 ####
@@ -162,7 +162,7 @@ IN_CHINA=""
 
 AUTHOR="Jetsung Chan <jetsungchan@gmail.com>"
 PROJECT_URL="https://github.com/jetsung/devenv"
-JIHULAB_URL="https://jihulab.com/jetsung/devenv"
+PROJ_URL="https://framagit.org/jetsung/devenv"
 
 # base
 golang_path="sh/go.sh"
@@ -183,7 +183,7 @@ rust_path="sh/rust.sh"
 [ -f ./sh/include.sh ] && . ./sh/include.sh
 
 if [ -n "$IN_CHINA" ]; then
-	PROJECT_URL="${JIHULAB_URL}"
+	PROJECT_URL="${PROJ_URL}"
 fi
 
 printf "
